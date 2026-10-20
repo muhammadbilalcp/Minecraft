@@ -1,0 +1,8 @@
+{
+  "name": "Minecraft",
+  "description": "3D voxel sandbox and survival game in the browser with crafting, mining, mobs, Nether dimension, Ender Dragon boss, and peer-to-peer multiplayer.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
