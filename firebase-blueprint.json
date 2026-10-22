@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered player profile with custom 3D dressing room skin and game stats",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Player user ID" },
+        "username": { "type": "string", "description": "Display username" },
+        "email": { "type": "string", "description": "Account email" },
+        "skin": { "type": "object", "description": "Custom 3D skin parts and color hexes" },
+        "stats": { "type": "object", "description": "Player gameplay statistics" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Player profile and custom character dressing room skin"
+    }
+  }
+}
