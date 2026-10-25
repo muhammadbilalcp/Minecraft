@@ -97,10 +97,12 @@
   }
 
   // --- World Setup Modal (4 Game Modes) ---
-  let isNewWorldFlow = false;
+  let isNewWorldFlow = true;
+  let isHostFlow = false;
 
-  function openWorldSetup(newWorld){
-    isNewWorldFlow = !!newWorld;
+  function openWorldSetup(forHost, newWorld){
+    isHostFlow = !!forHost;
+    isNewWorldFlow = (newWorld !== undefined) ? !!newWorld : true;
     const modal = $('worldSetupModal');
     if(!modal) return;
     modal.style.display = 'flex';
@@ -108,13 +110,13 @@
 
     const titleEl = document.getElementById('worldSetupTitle');
     if(titleEl){
-      titleEl.textContent = isNewWorldFlow ? 'Create New World' : 'Choose Game Mode';
+      titleEl.textContent = isHostFlow ? 'Host Online World (Choose Mode)' : 'World Setup & Game Mode';
     }
 
     const seedRow = document.getElementById('worldSetupSeedRow');
     if(seedRow){
-      seedRow.style.display = isNewWorldFlow ? 'block' : 'none';
-      if(isNewWorldFlow && $('worldSetupSeed') && !$('worldSetupSeed').value){
+      seedRow.style.display = 'block'; // Always display seed & customization
+      if($('worldSetupSeed') && !$('worldSetupSeed').value){
         $('worldSetupSeed').value = Math.floor(100000 + Math.random() * 900000);
       }
     }
@@ -124,7 +126,7 @@
   }
 
   function openNewWorldModal(){
-    openWorldSetup(true);
+    openWorldSetup(false, true);
   }
 
   function selectWorldMode(m){
@@ -135,27 +137,26 @@
   }
 
   function startWorldWithSetup(thenHost){
+    const host = (thenHost !== undefined) ? !!thenHost : isHostFlow;
     const modal = $('worldSetupModal');
     if(modal) modal.style.display = 'none';
 
-    if(window.MCModes) window.MCModes.setMode(selectedMode, false);
+    if(window.MCModes) window.MCModes.setMode(selectedMode, false, true);
 
     const seedInput = $('worldSetupSeed');
-    const seed = (isNewWorldFlow && seedInput) ? seedInput.value.trim() : '';
+    const seed = seedInput ? seedInput.value.trim() : '';
 
-    if(isNewWorldFlow && window.createWorld){
-      window.createWorld(seed, !!thenHost);
+    if(window.createWorld){
+      window.createWorld(seed, host);
       return;
     }
 
-    // Continuing into world without resetting!
     const menu = $('menu');
     if(menu) menu.style.display = 'none';
-
     if(window.startPlaying){
       window.startPlaying();
     }
-    if(thenHost && window.startHost){
+    if(host && window.startHost){
       window.startHost();
     }
   }
