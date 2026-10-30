@@ -209,7 +209,19 @@
     { id: 215, name: 'Sticky Piston', cat: 'tools' },
     { id: 218, name: 'Hopper', cat: 'tools' },
     { id: 226, name: 'Lever', cat: 'tools' },
-    { id: 227, name: 'Pressure Plate', cat: 'tools' }
+    { id: 227, name: 'Pressure Plate', cat: 'tools' },
+
+    // Buckets & Liquids
+    { id: 250, name: 'Bucket', cat: 'tools' },
+    { id: 251, name: 'Water Bucket', cat: 'tools' },
+    { id: 252, name: 'Lava Bucket', cat: 'tools' },
+    { id: 253, name: 'Milk Bucket', cat: 'tools' },
+
+    // Survival Essentials & Food
+    { id: 254, name: 'Wool Block', cat: 'blocks' },
+    { id: 255, name: 'Book', cat: 'tools' },
+    { id: 256, name: 'Cooked Porkchop', cat: 'tools' },
+    { id: 257, name: 'Steak', cat: 'tools' }
   ];
 
   function getMode(){

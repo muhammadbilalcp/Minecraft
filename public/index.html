@@ -7,8 +7,20 @@
 <meta name="description" content="3D voxel sandbox and survival game in the browser with crafting, mining, mobs, Nether dimension, Ender Dragon boss, and peer-to-peer multiplayer.">
 <meta property="og:title" content="Minecraft">
 <meta property="og:description" content="3D voxel sandbox and survival game in the browser with crafting, mining, mobs, Nether dimension, Ender Dragon boss, and peer-to-peer multiplayer.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('/Minecraft.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
   :root { --slot:46px; --icon:34px; --heart:22px; }
   body.touch { --slot:36px; --icon:28px; --heart:17px; }
   html, body { margin:0; padding:0; overflow:hidden; width:100%; height:100%; background:#87CEEB; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
@@ -156,10 +168,15 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
 #invPanel .slot .count{color:#fff}
 .apts{margin-left:8px;font-size:12px}
 .alabel{font-size:9px;color:#444;pointer-events:none}
-.rec{background:#a8a8a8;border-radius:0;border:2px solid;border-color:#fff #6b6b6b #6b6b6b #fff;color:#222}
-.rec .cost{color:#3a3a3a}
-.rec button{background:#5fa02f;border:2px solid #000;box-shadow:inset -2px -3px 0 #3d6e1c,inset 2px 2px 0 #9be06a;border-radius:0;font-family:inherit;color:#fff;text-shadow:1px 1px #234}
-.rec button:disabled{background:#8a8a8a;box-shadow:inset -2px -3px 0 #666,inset 2px 2px 0 #aaa;color:#ccc}
+.rec-header{font:400 24px 'VT323',ui-monospace,Menlo,Consolas,monospace;color:#222;margin:10px 0 6px;letter-spacing:0.5px}
+.rec{background:#b2b2b2;border-radius:0;border:2px solid;border-color:#ffffff #555555 #555555 #ffffff;box-shadow:none;color:#111;padding:4px 8px;display:flex;align-items:center;gap:10px;margin-bottom:4px;box-sizing:border-box}
+.rec-icon{width:36px;height:36px;image-rendering:pixelated;flex-shrink:0}
+.rec-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.rec-title{font:500 16px ui-monospace,Menlo,Consolas,monospace;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-cost{font:400 13px ui-monospace,Menlo,Consolas,monospace;color:#3c3c3c;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec button{background:#8e8e8e;border:2px solid;border-color:#ffffff #383838 #383838 #ffffff;box-shadow:inset 1px 1px 0 #dedede,inset -1px -1px 0 #282828;border-radius:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:15px;color:#fff;text-shadow:1px 1px 0 #333;padding:4px 16px;cursor:pointer;flex-shrink:0}
+.rec button:hover:not(:disabled){background:#9d9d9d}
+.rec button:disabled{background:#7a7a7a;border-color:#9c9c9c #4a4a4a #4a4a4a #9c9c9c;box-shadow:none;color:#a4a4a4;text-shadow:none;cursor:not-allowed}
 #invClose{background:#7d7d7d;border:2px solid #000;color:#fff;text-shadow:2px 2px #3c3c3c;box-shadow:inset -2px -3px 0 #4f4f4f,inset 2px 2px 0 #b4b4b4;border-radius:0;font-family:inherit}
 #deathScreen h1,#victory h1{font-family:Impact,"Arial Black",sans-serif;letter-spacing:.04em}
 .tbtn svg{width:56%;height:56%;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(1px 1px 1px #000)}
@@ -171,6 +188,32 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
 #menu>:first-child{margin-top:auto}
 #menu>:last-child{margin-bottom:auto}
 #roomLabel{color:#9fffa0;font-weight:700}
+
+/* --- Crafting Stations & Recipe Guide Styles --- */
+.rec-cat-btn {
+  font: 700 12px ui-monospace,monospace; padding: 4px 10px;
+  background: #7d7d7d; color: #fff; border: 2px solid #000;
+  box-shadow: inset -2px -2px 0 #4f4f4f, inset 2px 2px 0 #b4b4b4;
+  cursor: pointer;
+}
+.rec-cat-btn.active {
+  background: #4a8027; box-shadow: inset -2px -2px 0 #284c13, inset 2px 2px 0 #7dd444;
+}
+.ing-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
+  border-radius: 3px; font-size: 11px; font-weight: 700; margin: 2px 4px 2px 0;
+  cursor: pointer; transition: transform 0.1s;
+}
+.ing-chip:hover { transform: scale(1.05); }
+.ing-chip.have { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.ing-chip.need { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.ing-chip img { width: 14px; height: 14px; image-rendering: pixelated; }
+.rec-station-badge {
+  font-size: 10px; padding: 2px 5px; border-radius: 2px; font-weight: 700; text-transform: uppercase;
+}
+.rec-station-badge.pocket { background: #555; color: #fff; }
+.rec-station-badge.table { background: #854d0e; color: #fff; }
+.rec-station-badge.furnace { background: #b91c1c; color: #fff; }
 
 /* --- Enhanced Dressing Room & Game Modes Styles --- */
 .mc-modal-overlay {
@@ -417,8 +460,42 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
   <div id="armorRow"></div>
   <div id="invGrid"></div>
   <div style="font-size:11px;color:#aaa;margin-top:4px">Tap a slot, then another slot to move or swap. Bottom row is your hotbar.</div>
-  <h2 style="margin-top:10px">Crafting</h2>
-  <div id="recipes"></div>
+
+  <!-- Interactive Crafting Station Banner -->
+  <div id="craftingStationBanner" style="background:#283a20;border:1px solid #4a8027;color:#d4f5b2;padding:6px 10px;border-radius:2px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+    <span id="stationTitle" style="font-weight:bold;font-size:13px">🎒 Pocket Crafting (2x2)</span>
+    <span id="stationHint" style="font-size:11px;color:#c8e4b0">Right-click a Crafting Table or Furnace in world to open full station</span>
+  </div>
+
+  <!-- Recipe Category Tabs & Search Bar -->
+  <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
+    <div id="recipeCategoryTabs" style="display:flex;gap:4px;flex-wrap:wrap">
+      <button class="rec-cat-btn active" data-cat="all" onclick="filterRecipes('all')">All</button>
+      <button class="rec-cat-btn" data-cat="tools" onclick="filterRecipes('tools')">Tools &amp; Weapons</button>
+      <button class="rec-cat-btn" data-cat="armor" onclick="filterRecipes('armor')">Armor</button>
+      <button class="rec-cat-btn" data-cat="building" onclick="filterRecipes('building')">Building</button>
+      <button class="rec-cat-btn" data-cat="redstone" onclick="filterRecipes('redstone')">Redstone</button>
+      <button class="rec-cat-btn" data-cat="smelting" onclick="filterRecipes('smelting')">🔥 Smelting</button>
+    </div>
+    <input id="recipeSearchInput" class="mcinput" style="flex:1;min-width:130px;margin:0;padding:4px 8px;font-size:12px;text-align:left" placeholder="🔍 Search item or ingredient..." oninput="onRecipeSearch(this.value)" />
+  </div>
+
+  <h3 class="rec-header">Crafting</h3>
+  <div id="recipes" style="margin-top:4px"></div>
+</div>
+
+<!-- Chest Storage Modal -->
+<div id="chestModal" class="mc-modal-overlay">
+  <div class="mc-window" style="width:min(580px,94vw);padding:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 style="margin:0;font-size:20px;color:#222">📦 Chest Storage</h2>
+      <button class="mcbtn" style="width:auto;margin:0;padding:4px 10px" onclick="closeChestUI()">✕ Close</button>
+    </div>
+    <div style="font-size:12px;color:#333;margin-bottom:4px;font-weight:bold">Chest Contents (27 Slots) — Tap item to withdraw to backpack:</div>
+    <div id="chestGrid" style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;background:#8b8b8b;padding:8px;border:2px solid;border-color:#373737 #fff #fff #373737;margin-bottom:12px;min-height:130px"></div>
+    <div style="font-size:12px;color:#333;margin-bottom:4px;font-weight:bold">Player Backpack — Tap item to deposit into chest:</div>
+    <div id="chestPlayerGrid" style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;background:#8b8b8b;padding:8px;border:2px solid;border-color:#373737 #fff #fff #373737"></div>
+  </div>
 </div>
 
 
@@ -488,16 +565,89 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
   </div>
 </div>
 
+<!-- Palace Restricted Access Modal (for non-owner / uninvited players) -->
+<div id="palaceRestrictedModal" class="mc-modal-overlay">
+  <div class="mc-window" style="width:min(520px,94vw);padding:24px;text-align:center">
+    <div style="font-size:36px;margin-bottom:6px">🏰🔒</div>
+    <h2 style="margin:0 0 6px;font-size:24px;color:#854d0e">BILAL'S GRAND PALACE</h2>
+    <div style="font-size:12px;color:#b45309;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Imperial Domain of Muhammad Bilal</div>
+
+    <div style="background:#fffbe6;border:2px solid #ffe58f;border-radius:4px;padding:12px;font-size:13px;color:#5a3800;text-align:left;line-height:1.5;margin-bottom:16px">
+      <strong>⛔ Restricted Access:</strong> This 3-Floor Grand Palace and Fortress was custom crafted exclusively for <strong>Emperor Muhammad Bilal</strong>.
+      <br><br>
+      Only <strong>Muhammad Bilal</strong> (<code>mongolance080@gmail.com</code> / <code>muhammadbilalcp@gmail.com</code>) or players who hold an Imperial Royal Pass can enter!
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="mcbtn" style="background:#854d0e;border:2px solid #ffd700;padding:12px;font-size:15px;color:#fff;font-weight:bold" onclick="openOwnerSignInFromRestricted()">👑 Sign In as Muhammad Bilal</button>
+
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input id="guestPassInput" class="mcinput" style="flex:1;margin:0;padding:8px" placeholder="Enter Your Invited Username..." />
+        <button class="mcbtn" style="width:auto;margin:0;padding:8px 14px;background:#3b587a" onclick="tryUseGuestPass()">🎟️ Enter with Pass</button>
+      </div>
+
+      <button class="mcbtn" style="background:#666;margin-top:6px" onclick="document.getElementById('palaceRestrictedModal').style.display='none'">✕ Back to Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Palace Gate & Guest Pass Manager (Emperor Bilal's Command Center) -->
+<div id="palaceGateModal" class="mc-modal-overlay">
+  <div class="mc-window" style="width:min(520px,94vw);padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0;font-size:22px;color:#854d0e">👑 Palace Gate &amp; Guest Manager</h2>
+      <button class="mcbtn" style="width:auto;margin:0;padding:4px 10px" onclick="document.getElementById('palaceGateModal').style.display='none'">✕</button>
+    </div>
+    <div style="font-size:13px;color:#333;margin-bottom:14px">
+      Welcome, Emperor <strong>Muhammad Bilal</strong>! You control who is permitted to enter your 3-Floor Grand Palace and Fortress.
+    </div>
+
+    <div style="background:#f5f5f5;border:2px solid #ccc;padding:10px;margin-bottom:14px">
+      <div style="font-weight:bold;font-size:13px;color:#222;margin-bottom:6px">Palace Gate Mode:</div>
+      <div style="display:flex;gap:8px">
+        <button id="gateModePrivateBtn" class="mcbtn" style="flex:1;background:#854d0e;margin:0" onclick="setPalaceGate('private')">🔒 Private (Only Bilal)</button>
+        <button id="gateModeOpenBtn" class="mcbtn" style="flex:1;background:#555;margin:0" onclick="setPalaceGate('open')">🎟️ Open to Friends</button>
+      </div>
+      <div id="gateStatusExpl" style="font-size:11px;color:#666;margin-top:6px">Currently: Only you can enter.</div>
+    </div>
+
+    <div style="font-weight:bold;font-size:13px;color:#222;margin-bottom:6px">Grant Royal Pass to Specific Friend:</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <input id="palaceNewGuestInput" class="mcinput" style="flex:1;margin:0;padding:8px" placeholder="Friend's Player Username..." />
+      <button class="mcbtn" style="width:auto;margin:0;padding:8px 14px;background:#4a8027" onclick="addGuestFromInput()">+ Grant Pass</button>
+    </div>
+
+    <div style="font-weight:bold;font-size:12px;color:#444;margin-bottom:4px">Current Guest Whitelist:</div>
+    <div id="palaceGuestList" style="max-height:120px;overflow-y:auto;background:#e0e0e0;padding:6px;border:1px solid #999;font-size:12px;color:#222">
+      (No guest passes granted yet)
+    </div>
+  </div>
+</div>
+
 <!-- World Setup & 4 Game Modes Selection Modal -->
 <div id="worldSetupModal" class="mc-modal-overlay">
   <div class="mc-window" style="width:min(680px,94vw);padding:20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <h2 id="worldSetupTitle" style="margin:0;font-size:24px;color:#222">World Setup &amp; Game Mode</h2>
       <button class="mcbtn" style="width:auto;margin:0;padding:4px 10px" onclick="document.getElementById('worldSetupModal').style.display='none'">✕</button>
     </div>
-    <div style="background:#eaf4ff;border:1px solid #7cb3e8;border-radius:4px;padding:6px 10px;margin-bottom:12px;font-size:13px;color:#184a80">
-      <strong>✓ 100% Free &amp; Unlocked:</strong> No sign up needed! Custom worlds and multiplayer work instantly for Guests and Accounts alike.
+
+    <!-- Account vs Guest Warning Banner -->
+    <div id="worldSetupAccountBanner" style="background:#fffbe6;border:1px solid #faad14;border-radius:4px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#873800">
+      <strong>⚠️ Playing as Temporary Guest:</strong> Your custom world will <strong>NOT be saved</strong> without an account!
     </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label style="display:block;font:700 12px ui-monospace,monospace;color:#333;margin-bottom:4px">World Name:</label>
+        <input id="worldSetupName" class="mcinput" style="width:100%;margin:0;padding:8px" value="My World" placeholder="World name..." />
+      </div>
+      <div>
+        <label style="display:block;font:700 12px ui-monospace,monospace;color:#333;margin-bottom:4px">Player Name Tag (In-Game &amp; Friends):</label>
+        <input id="worldSetupNameTag" class="mcinput" style="width:100%;margin:0;padding:8px" placeholder="Your Name Tag (e.g. Steve / Bilal)..." />
+      </div>
+    </div>
+
     <p style="color:#444;font-size:13px;margin:4px 0 10px;font-weight:600">Select Game Mode (both players in multiplayer will play this mode):</p>
     <div class="mode-grid">
       <div class="mode-card selected" data-mode="survival" onclick="selectWorldMode('survival')">
@@ -523,7 +673,8 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
         <input id="worldSetupSeed" class="mcinput" style="flex:1;margin:0" placeholder="World Seed..." />
         <button type="button" class="mcbtn" style="width:auto;margin:0;padding:8px 12px" onclick="document.getElementById('worldSetupSeed').value=Math.floor(100000+Math.random()*900000)">🎲 Random</button>
       </div>
-      <div style="display:flex;gap:6px;margin-top:6px">
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <button type="button" class="mcbtn" style="width:auto;margin:0;padding:4px 8px;font-size:12px;background:#854d0e;border:1px solid #ffd700;color:#fff;font-weight:bold" onclick="document.getElementById('worldSetupSeed').value='palace'; document.getElementById('worldSetupName').value='Bilal\'s Grand Palace'">🏰 Bilal's Grand Palace</button>
         <button type="button" class="mcbtn" style="width:auto;margin:0;padding:4px 8px;font-size:12px;background:#555" onclick="document.getElementById('worldSetupSeed').value='1337'">🌲 Classic Overworld</button>
         <button type="button" class="mcbtn" style="width:auto;margin:0;padding:4px 8px;font-size:12px;background:#555" onclick="document.getElementById('worldSetupSeed').value='777777'">⛏️ Ore Mountains</button>
         <button type="button" class="mcbtn" style="width:auto;margin:0;padding:4px 8px;font-size:12px;background:#555" onclick="document.getElementById('worldSetupSeed').value='424242'">🌊 Island World</button>
@@ -533,9 +684,20 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
       <button class="mcbtn" style="width:auto;margin:0;padding:10px 14px;background:#777" onclick="document.getElementById('worldSetupModal').style.display='none'">Cancel</button>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="mcbtn" style="width:auto;margin:0;padding:10px 18px;background:#3b587a" onclick="startWorldWithSetup(true)">🌐 Host &amp; Play with Friends</button>
-        <button class="mcbtn" style="width:auto;margin:0;padding:10px 22px;background:#4a8027" onclick="startWorldWithSetup(false)">▶ Play Singleplayer</button>
+        <button class="mcbtn" style="width:auto;margin:0;padding:10px 22px;background:#4a8027" onclick="startWorldWithSetup(false)">▶ Play World</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Saved Worlds Modal -->
+<div id="savedWorldsModal" class="mc-modal-overlay">
+  <div class="mc-window" style="width:min(680px,94vw);padding:20px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0;font-size:24px;color:#222">📂 My Saved Worlds</h2>
+      <button class="mcbtn" style="width:auto;margin:0;padding:4px 10px" onclick="document.getElementById('savedWorldsModal').style.display='none'">✕</button>
+    </div>
+    <div id="savedWorldsList"></div>
   </div>
 </div>
 
@@ -552,7 +714,9 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
         <button class="mc-tab-btn" data-pause-mode="hardcore" onclick="window.MCModes.setMode('hardcore')">Hardcore</button>
       </div>
     </div>
+    <button class="mcbtn" style="background:#2b6bb0;margin-bottom:8px" onclick="saveCurrentWorld()">💾 Save World to Account</button>
     <button class="mcbtn" onclick="resumeGame()">Back to Game</button>
+    <button id="pausePalaceGateBtn" class="mcbtn" style="display:none;background:#854d0e;border:2px solid #ffd700;margin-bottom:8px" onclick="openPalaceGateModal()">👑 Palace Gate &amp; Guests</button>
     <button class="mcbtn" style="background:#3b587a" onclick="window.MCDressing.open()">👔 Dressing Room</button>
     <button id="pauseInviteBtn" class="mcbtn" style="background:#555" onclick="copyInviteLink()">🔗 Copy Invite Link</button>
     <button class="mcbtn" style="background:#8a3a3a;margin-top:14px" onclick="exitToMainMenu()">Save &amp; Quit to Title</button>
@@ -574,9 +738,12 @@ body.inmenu #hud,body.inmenu #topLeft,body.inmenu #hint,body.inmenu #crosshair,b
     <button id="menuAccountBtn" class="mc-action-chip" onclick="openAuthModal()">👤 Profile (<span id="menuAccountName">Guest</span>)</button>
     <button id="menuDressingBtn" class="mc-action-chip" style="background:#4a8027" onclick="window.MCDressing.open()">👔 3D Dressing Room &amp; Skins</button>
   </div>
+  <button id="menuPalaceGateBtn" class="mcbtn" style="display:none;background:#854d0e;border:2px solid #ffd700;font-size:13px;padding:8px;margin-bottom:6px;color:#fff;font-weight:bold" onclick="openPalaceGateModal()">👑 Manage Palace Gate &amp; Guests</button>
 
+  <button id="palaceWorldBtn" class="mcbtn" style="font-size:18px;padding:12px;background:#854d0e;border:2px solid #ffd700;box-shadow:inset -3px -4px 0 #543105,inset 3px 3px 0 #ffeb77;color:#fff;font-weight:bold" onclick="enterPalaceWorld()">🏰 Enter Bilal's Grand Palace</button>
   <button id="startBtn" class="mcbtn" style="font-size:18px;padding:12px;background:#4a8027" onclick="openWorldSetup(false)">▶ Play / Choose Mode</button>
   <button id="newWorldBtn" class="mcbtn" onclick="openNewWorldModal()">Create Custom World</button>
+  <button id="savedWorldsBtn" class="mcbtn" style="background:#854d0e" onclick="openSavedWorldsModal()">📂 My Saved Worlds</button>
   <button id="hostBtn" class="mcbtn" style="background:#3b587a" onclick="openWorldSetup(true)">🌐 Host Online World (Friends)</button>
   <div style="display:flex;gap:6px;width:100%;max-width:320px;margin:3px 0">
     <input id="codeInput" class="mcinput" style="flex:1;margin:0" placeholder="Room code to join" maxlength="8" autocomplete="off" autocapitalize="characters">
@@ -691,7 +858,9 @@ const ITEM = {
   STONE_BUTTON:231, WOOD_BUTTON:232, TARGET_BLOCK:233, LIGHTNING_ROD:234,
   ITEM_FRAME:235, GLOW_ITEM_FRAME:236, SIGN:237, HANGING_SIGN:238,
   BREWING_STAND:239, CAULDRON:240, GRINDSTONE:241, STONECUTTER:242, LOOM:243,
-  CARTOGRAPHY_TABLE:244, FLETCHING_TABLE:245, SMITHING_TABLE:246, CONDUIT:247
+  CARTOGRAPHY_TABLE:244, FLETCHING_TABLE:245, SMITHING_TABLE:246, CONDUIT:247,
+  BUCKET:250, WATER_BUCKET:251, LAVA_BUCKET:252, MILK_BUCKET:253,
+  WOOL:254, BOOK:255, COOKED_PORK:256, COOKED_BEEF:257
 };
 ITEM.PICK = ITEM.PICK_STONE;
 ITEM.SWORD = ITEM.SWORD_STONE;
@@ -731,7 +900,9 @@ const ITEMS = {
   231:{name:'Stone Button'}, 232:{name:'Wooden Button'}, 233:{name:'Target'}, 234:{name:'Lightning Rod'},
   235:{name:'Item Frame'}, 236:{name:'Glow Item Frame'}, 237:{name:'Sign'}, 238:{name:'Hanging Sign'},
   239:{name:'Brewing Stand'}, 240:{name:'Cauldron'}, 241:{name:'Grindstone'}, 242:{name:'Stonecutter'}, 243:{name:'Loom'},
-  244:{name:'Cartography Table'}, 245:{name:'Fletching Table'}, 246:{name:'Smithing Table'}, 247:{name:'Conduit'}
+  244:{name:'Cartography Table'}, 245:{name:'Fletching Table'}, 246:{name:'Smithing Table'}, 247:{name:'Conduit'},
+  250:{name:'Bucket'}, 251:{name:'Water Bucket'}, 252:{name:'Lava Bucket'}, 253:{name:'Milk Bucket', food:2},
+  254:{name:'Wool'}, 255:{name:'Book'}, 256:{name:'Cooked Porkchop', food:8}, 257:{name:'Steak', food:8}
 };
 
 const BLOCK_NAMES = {
@@ -828,12 +999,39 @@ function noiseBurst(dur, vol, fc){
   const g = a.createGain(); g.gain.value = vol||0.15;
   s.connect(f); f.connect(g); g.connect(a.destination); s.start();
 }
+function playSample(relPath, vol = 0.5){
+  try {
+    const aud = new Audio(relPath);
+    aud.volume = Math.max(0, Math.min(1, vol));
+    const p = aud.play();
+    if(p && p.catch) p.catch(()=>{});
+  } catch(e){}
+}
+function rnd1to(n){ return Math.floor(Math.random()*n) + 1; }
 function sfx(k){
   try{
     switch(k){
-      case 'dig': noiseBurst(0.07,0.07,900); break;
-      case 'break': noiseBurst(0.18,0.16,1400); break;
-      case 'place': tone(160,0.09,'square',0.06,0.6); break;
+      case 'click':
+        playSample('/sounds/random/click_stereo.ogg', 0.4);
+        break;
+      case 'step':
+        playSample('/sounds/step/grass' + rnd1to(6) + '.ogg', 0.28);
+        break;
+      case 'dig':
+        noiseBurst(0.07,0.07,900);
+        playSample('/sounds/dig/grass' + rnd1to(4) + '.ogg', 0.35);
+        break;
+      case 'break':
+        noiseBurst(0.18,0.16,1400);
+        playSample('/sounds/dig/stone' + rnd1to(4) + '.ogg', 0.45);
+        break;
+      case 'place':
+        tone(160,0.09,'square',0.06,0.6);
+        playSample('/sounds/dig/wood' + rnd1to(4) + '.ogg', 0.4);
+        break;
+      case 'glass':
+        playSample('/sounds/random/glass' + rnd1to(3) + '.ogg', 0.45);
+        break;
       case 'hurt': tone(220,0.2,'sawtooth',0.09,0.5); break;
       case 'hit': noiseBurst(0.08,0.12,2200); break;
       case 'eat': tone(300,0.06,'square',0.05); setTimeout(()=>tone(260,0.06,'square',0.05),90); setTimeout(()=>tone(320,0.06,'square',0.05),180); break;
@@ -841,7 +1039,11 @@ function sfx(k){
       case 'boom': noiseBurst(0.7,0.4,500); tone(70,0.5,'sawtooth',0.15,0.3); break;
       case 'hiss': noiseBurst(0.5,0.1,4000); break;
       case 'roar': tone(90,1.1,'sawtooth',0.14,0.5); break;
-      case 'craft': tone(520,0.08,'triangle',0.07); setTimeout(()=>tone(780,0.1,'triangle',0.07),80); break;
+      case 'craft':
+        playSample('/sounds/random/click_stereo.ogg', 0.45);
+        tone(520,0.08,'triangle',0.07);
+        setTimeout(()=>tone(780,0.1,'triangle',0.07),80);
+        break;
       case 'fire': noiseBurst(0.25,0.1,2500); break;
     }
   }catch(e){}
@@ -1192,6 +1394,23 @@ function makeItemIcon(id){
     case ITEM.SHOVEL_GOLD: drawShovel('#facc15'); break;
     case ITEM.SHOVEL_DIAMOND: drawShovel('#38bdf8'); break;
     case ITEM.SHOVEL_NETHERITE: drawShovel('#3e3646'); break;
+    // Buckets
+    case ITEM.BUCKET:
+      rect(4,5,2,7,'#94a3b8'); rect(10,5,2,7,'#94a3b8'); rect(5,11,6,2,'#94a3b8'); rect(6,13,4,1,'#64748b'); rect(6,6,4,5,'#1e293b'); rect(4,5,8,1,'#cbd5e1'); break;
+    case ITEM.WATER_BUCKET:
+      rect(4,5,2,7,'#94a3b8'); rect(10,5,2,7,'#94a3b8'); rect(5,11,6,2,'#94a3b8'); rect(6,13,4,1,'#64748b'); rect(6,6,4,5,'#2563eb'); rect(6,6,4,1,'#60a5fa'); break;
+    case ITEM.LAVA_BUCKET:
+      rect(4,5,2,7,'#94a3b8'); rect(10,5,2,7,'#94a3b8'); rect(5,11,6,2,'#94a3b8'); rect(6,13,4,1,'#64748b'); rect(6,6,4,5,'#ea580c'); rect(6,6,4,1,'#facc15'); break;
+    case ITEM.MILK_BUCKET:
+      rect(4,5,2,7,'#94a3b8'); rect(10,5,2,7,'#94a3b8'); rect(5,11,6,2,'#94a3b8'); rect(6,13,4,1,'#64748b'); rect(6,6,4,5,'#f8fafc'); rect(6,6,4,1,'#ffffff'); break;
+    case ITEM.WOOL:
+      rect(5,5,6,6,'#f8fafc'); rect(4,6,8,4,'#e2e8f0'); px(6,6,'#ffffff'); px(9,9,'#cbd5e1'); break;
+    case ITEM.BOOK:
+      rect(4,4,8,8,'#7c2d12'); rect(5,5,6,6,'#fef3c7'); rect(4,4,2,8,'#451a03'); px(7,7,'#92400e'); break;
+    case ITEM.COOKED_PORK:
+      rect(3,5,10,7,'#b45309'); rect(4,4,8,9,'#d97706'); rect(12,7,2,3,'#fef3c7'); break;
+    case ITEM.COOKED_BEEF:
+      rect(3,5,10,7,'#7c2d12'); rect(4,4,8,9,'#9a3412'); rect(11,6,2,4,'#fef3c7'); break;
     default:
       if(id >= 111 && id <= 130) armorIcon(g, id);
       else { rect(5,5,6,6,'#94a3b8'); px(7,7,'#fff'); }
@@ -1852,7 +2071,7 @@ function updateClouds(dt){
 /* ============================ PLAYER + INVENTORY ============================ */
 const player = {
   pos: new THREE.Vector3(8, 30, 8), vel: new THREE.Vector3(), kb: new THREE.Vector3(),
-  yaw: 0, pitch: 0, onGround: false, peak: 30,
+  yaw: 0, pitch: 0, onGround: false, peak: 30, stepDist: 0,
   health: 20, maxHealth: 20, hunger: 20, maxHunger: 20, air: 10,
   alive: true, hungerTimer: 0, regenTimer: 0, damageTimer: 0, invuln: 0, lavaT: 0, airT: 0,
   sprinting: false, portalT: 0, portalCd: 0
@@ -1902,158 +2121,387 @@ function equipFromSlot(i){
   lastHP = -1; updateHudUI();
 }
 const RECIPES = [
-  // Basic Survival & Utilities
-  { out:[BLOCK.PLANK,4], in:[[BLOCK.WOOD,1]] },
-  { out:[BLOCK.CRAFTING_TABLE,1], in:[[BLOCK.PLANK,4]] },
-  { out:[ITEM.STICK,4], in:[[BLOCK.PLANK,2]] },
-  { out:[BLOCK.TORCH,4], in:[[ITEM.COAL,1],[ITEM.STICK,1]] },
-  { out:[BLOCK.SOUL_TORCH,4], in:[[BLOCK.SOULSAND,1],[ITEM.STICK,1],[ITEM.COAL,1]] },
-  { out:[BLOCK.CHEST,1], in:[[BLOCK.PLANK,8]] },
-  { out:[BLOCK.FURNACE,1], in:[[BLOCK.STONE,8]] },
-  { out:[BLOCK.BLAST_FURNACE,1], in:[[BLOCK.FURNACE,1],[ITEM.INGOT_IRON,5],[BLOCK.STONE,3]] },
-  { out:[BLOCK.SMOKER,1], in:[[BLOCK.FURNACE,1],[BLOCK.WOOD,4]] },
-  { out:[BLOCK.CAMPFIRE,1], in:[[ITEM.STICK,3],[ITEM.COAL,1],[BLOCK.WOOD,3]] },
-  { out:[BLOCK.SOUL_CAMPFIRE,1], in:[[ITEM.STICK,3],[BLOCK.SOULSAND,1],[BLOCK.WOOD,3]] },
-  { out:[BLOCK.BED,1], in:[[ITEM.LEATHER,3],[BLOCK.PLANK,3]] },
-  { out:[BLOCK.LADDER,3], in:[[ITEM.STICK,7]] },
-  { out:[ITEM.ITEM_FRAME,1], in:[[ITEM.STICK,8],[ITEM.LEATHER,1]] },
-  { out:[ITEM.GLOW_ITEM_FRAME,1], in:[[ITEM.ITEM_FRAME,1],[BLOCK.GLOWSTONE,1]] },
-  { out:[ITEM.SIGN,3], in:[[BLOCK.PLANK,6],[ITEM.STICK,1]] },
-  { out:[ITEM.HANGING_SIGN,6], in:[[ITEM.INGOT_IRON,2],[BLOCK.WOOD,6]] },
-  { out:[BLOCK.BARREL,1], in:[[BLOCK.PLANK,8]] },
-  { out:[BLOCK.BOOKSHELF,1], in:[[BLOCK.PLANK,6],[ITEM.LEATHER,3]] },
-  { out:[BLOCK.CHISELED_BOOKSHELF,1], in:[[BLOCK.PLANK,9]] },
-  { out:[ITEM.BRUSH,1], in:[[ITEM.COPPER_INGOT,1],[ITEM.STICK,1],[ITEM.FEATHER,1]] },
+  // Basic Survival & Utilities (Pocket & Table)
+  { out:[BLOCK.PLANK,4], in:[[BLOCK.WOOD,1]], cat:'building', station:'pocket' },
+  { out:[BLOCK.CRAFTING_TABLE,1], in:[[BLOCK.PLANK,4]], cat:'building', station:'pocket' },
+  { out:[ITEM.STICK,4], in:[[BLOCK.PLANK,2]], cat:'building', station:'pocket' },
+  { out:[BLOCK.TORCH,4], in:[[ITEM.COAL,1],[ITEM.STICK,1]], cat:'building', station:'pocket' },
+  { out:[BLOCK.SOUL_TORCH,4], in:[[BLOCK.SOULSAND,1],[ITEM.STICK,1],[ITEM.COAL,1]], cat:'building', station:'pocket' },
+  { out:[ITEM.WOOL,1], in:[[ITEM.STRING,4]], cat:'building', station:'pocket' },
+  { out:[ITEM.STRING,4], in:[[ITEM.WOOL,1]], cat:'building', station:'pocket' },
+  { out:[ITEM.BOOK,1], in:[[ITEM.LEATHER,1],[ITEM.STRING,3]], cat:'building', station:'pocket' },
+  { out:[BLOCK.CHEST,1], in:[[BLOCK.PLANK,8]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.FURNACE,1], in:[[BLOCK.STONE,8]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.BLAST_FURNACE,1], in:[[BLOCK.FURNACE,1],[ITEM.INGOT_IRON,5],[BLOCK.STONE,3]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.SMOKER,1], in:[[BLOCK.FURNACE,1],[BLOCK.WOOD,4]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.CAMPFIRE,1], in:[[ITEM.STICK,3],[ITEM.COAL,1],[BLOCK.WOOD,3]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.SOUL_CAMPFIRE,1], in:[[ITEM.STICK,3],[BLOCK.SOULSAND,1],[BLOCK.WOOD,3]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.BED,1], in:[[ITEM.WOOL,3],[BLOCK.PLANK,3]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.LADDER,3], in:[[ITEM.STICK,7]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.ITEM_FRAME,1], in:[[ITEM.STICK,8],[ITEM.LEATHER,1]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.GLOW_ITEM_FRAME,1], in:[[ITEM.ITEM_FRAME,1],[BLOCK.GLOWSTONE,1]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.SIGN,3], in:[[BLOCK.PLANK,6],[ITEM.STICK,1]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.HANGING_SIGN,6], in:[[ITEM.INGOT_IRON,2],[BLOCK.WOOD,6]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.BARREL,1], in:[[BLOCK.PLANK,8]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.BOOKSHELF,1], in:[[BLOCK.PLANK,6],[ITEM.BOOK,3]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.CHISELED_BOOKSHELF,1], in:[[BLOCK.PLANK,9]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.BRUSH,1], in:[[ITEM.COPPER_INGOT,1],[ITEM.STICK,1],[ITEM.FEATHER,1]], cat:'tools', station:'crafting_table' },
 
   // Tools & Weapons
-  { out:[ITEM.PICK_WOOD,1], in:[[BLOCK.PLANK,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SWORD_WOOD,1], in:[[BLOCK.PLANK,2],[ITEM.STICK,1]] },
-  { out:[ITEM.AXE_WOOD,1], in:[[BLOCK.PLANK,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SHOVEL_WOOD,1], in:[[BLOCK.PLANK,1],[ITEM.STICK,2]] },
-  { out:[ITEM.HOE_WOOD,1], in:[[BLOCK.PLANK,2],[ITEM.STICK,2]] },
+  { out:[ITEM.PICK_WOOD,1], in:[[BLOCK.PLANK,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_WOOD,1], in:[[BLOCK.PLANK,2],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_WOOD,1], in:[[BLOCK.PLANK,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_WOOD,1], in:[[BLOCK.PLANK,1],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_WOOD,1], in:[[BLOCK.PLANK,2],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.PICK_STONE,1], in:[[BLOCK.STONE,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SWORD_STONE,1], in:[[BLOCK.STONE,2],[ITEM.STICK,1]] },
-  { out:[ITEM.AXE_STONE,1], in:[[BLOCK.STONE,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SHOVEL_STONE,1], in:[[BLOCK.STONE,1],[ITEM.STICK,2]] },
-  { out:[ITEM.HOE_STONE,1], in:[[BLOCK.STONE,2],[ITEM.STICK,2]] },
+  { out:[ITEM.PICK_STONE,1], in:[[BLOCK.STONE,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_STONE,1], in:[[BLOCK.STONE,2],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_STONE,1], in:[[BLOCK.STONE,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_STONE,1], in:[[BLOCK.STONE,1],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_STONE,1], in:[[BLOCK.STONE,2],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.PICK_IRON,1], in:[[ITEM.INGOT_IRON,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SWORD_IRON,1], in:[[ITEM.INGOT_IRON,2],[ITEM.STICK,1]] },
-  { out:[ITEM.AXE_IRON,1], in:[[ITEM.INGOT_IRON,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SHOVEL_IRON,1], in:[[ITEM.INGOT_IRON,1],[ITEM.STICK,2]] },
-  { out:[ITEM.HOE_IRON,1], in:[[ITEM.INGOT_IRON,2],[ITEM.STICK,2]] },
+  { out:[ITEM.PICK_IRON,1], in:[[ITEM.INGOT_IRON,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_IRON,1], in:[[ITEM.INGOT_IRON,2],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_IRON,1], in:[[ITEM.INGOT_IRON,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_IRON,1], in:[[ITEM.INGOT_IRON,1],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_IRON,1], in:[[ITEM.INGOT_IRON,2],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.PICK_GOLD,1], in:[[ITEM.INGOT_GOLD,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SWORD_GOLD,1], in:[[ITEM.INGOT_GOLD,2],[ITEM.STICK,1]] },
-  { out:[ITEM.AXE_GOLD,1], in:[[ITEM.INGOT_GOLD,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SHOVEL_GOLD,1], in:[[ITEM.INGOT_GOLD,1],[ITEM.STICK,2]] },
-  { out:[ITEM.HOE_GOLD,1], in:[[ITEM.INGOT_GOLD,2],[ITEM.STICK,2]] },
+  { out:[ITEM.PICK_GOLD,1], in:[[ITEM.INGOT_GOLD,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_GOLD,1], in:[[ITEM.INGOT_GOLD,2],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_GOLD,1], in:[[ITEM.INGOT_GOLD,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_GOLD,1], in:[[ITEM.INGOT_GOLD,1],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_GOLD,1], in:[[ITEM.INGOT_GOLD,2],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.PICK_DIAMOND,1], in:[[ITEM.DIAMOND,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SWORD_DIAMOND,1], in:[[ITEM.DIAMOND,2],[ITEM.STICK,1]] },
-  { out:[ITEM.AXE_DIAMOND,1], in:[[ITEM.DIAMOND,3],[ITEM.STICK,2]] },
-  { out:[ITEM.SHOVEL_DIAMOND,1], in:[[ITEM.DIAMOND,1],[ITEM.STICK,2]] },
-  { out:[ITEM.HOE_DIAMOND,1], in:[[ITEM.DIAMOND,2],[ITEM.STICK,2]] },
+  { out:[ITEM.PICK_DIAMOND,1], in:[[ITEM.DIAMOND,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_DIAMOND,1], in:[[ITEM.DIAMOND,2],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_DIAMOND,1], in:[[ITEM.DIAMOND,3],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_DIAMOND,1], in:[[ITEM.DIAMOND,1],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_DIAMOND,1], in:[[ITEM.DIAMOND,2],[ITEM.STICK,2]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.PICK_NETHERITE,1], in:[[ITEM.PICK_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]] },
-  { out:[ITEM.SWORD_NETHERITE,1], in:[[ITEM.SWORD_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]] },
-  { out:[ITEM.AXE_NETHERITE,1], in:[[ITEM.AXE_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]] },
-  { out:[ITEM.SHOVEL_NETHERITE,1], in:[[ITEM.SHOVEL_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]] },
-  { out:[ITEM.HOE_NETHERITE,1], in:[[ITEM.HOE_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]] },
+  { out:[ITEM.PICK_NETHERITE,1], in:[[ITEM.PICK_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SWORD_NETHERITE,1], in:[[ITEM.SWORD_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.AXE_NETHERITE,1], in:[[ITEM.AXE_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHOVEL_NETHERITE,1], in:[[ITEM.SHOVEL_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOE_NETHERITE,1], in:[[ITEM.HOE_DIAMOND,1],[ITEM.NETHERITE_INGOT,1]], cat:'tools', station:'crafting_table' },
 
-  { out:[ITEM.BOW,1], in:[[ITEM.STICK,3],[ITEM.STRING,3]] },
-  { out:[ITEM.CROSSBOW,1], in:[[ITEM.STICK,3],[ITEM.STRING,2],[ITEM.INGOT_IRON,1],[ITEM.TRIPWIRE_HOOK,1]] },
-  { out:[ITEM.ARROW,4], in:[[ITEM.FLINT,1],[ITEM.STICK,1],[ITEM.FEATHER,1]] },
-  { out:[ITEM.SHIELD,1], in:[[BLOCK.PLANK,6],[ITEM.INGOT_IRON,1]] },
-  { out:[ITEM.SHEARS,1], in:[[ITEM.INGOT_IRON,2]] },
-  { out:[ITEM.FLINT,1], in:[[ITEM.INGOT_IRON,1],[ITEM.COAL,1]] },
-  { out:[ITEM.FISHING_ROD,1], in:[[ITEM.STICK,3],[ITEM.STRING,2]] },
-  { out:[ITEM.CARROT_STICK,1], in:[[ITEM.FISHING_ROD,1],[ITEM.CARROT,1]] },
-  { out:[ITEM.WARPED_FUNGUS_STICK,1], in:[[ITEM.FISHING_ROD,1],[BLOCK.NETHERRACK,1]] },
-  { out:[ITEM.SPYGLASS,1], in:[[ITEM.COPPER_INGOT,2],[ITEM.DIAMOND,1]] },
-  { out:[ITEM.MACE,1], in:[[ITEM.BLAZE,1],[ITEM.INGOT_IRON,4]] },
+  { out:[ITEM.BOW,1], in:[[ITEM.STICK,3],[ITEM.STRING,3]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.CROSSBOW,1], in:[[ITEM.STICK,3],[ITEM.STRING,2],[ITEM.INGOT_IRON,1],[ITEM.TRIPWIRE_HOOK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.ARROW,4], in:[[ITEM.FLINT,1],[ITEM.STICK,1],[ITEM.FEATHER,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHIELD,1], in:[[BLOCK.PLANK,6],[ITEM.INGOT_IRON,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SHEARS,1], in:[[ITEM.INGOT_IRON,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.FLINT,1], in:[[ITEM.INGOT_IRON,1],[ITEM.COAL,1]], cat:'tools', station:'pocket' },
+  { out:[ITEM.FISHING_ROD,1], in:[[ITEM.STICK,3],[ITEM.STRING,2]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.CARROT_STICK,1], in:[[ITEM.FISHING_ROD,1],[ITEM.CARROT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.WARPED_FUNGUS_STICK,1], in:[[ITEM.FISHING_ROD,1],[BLOCK.NETHERRACK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.SPYGLASS,1], in:[[ITEM.COPPER_INGOT,2],[ITEM.DIAMOND,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.MACE,1], in:[[ITEM.BLAZE,1],[ITEM.INGOT_IRON,4]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.BUCKET,1], in:[[ITEM.INGOT_IRON,3]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.WATER_BUCKET,1], in:[[ITEM.BUCKET,1],[BLOCK.WATER,1]], cat:'tools', station:'pocket' },
 
   // Armor Sets
-  { out:[111,1], in:[[109,5]] }, { out:[112,1], in:[[109,8]] }, { out:[113,1], in:[[109,7]] }, { out:[114,1], in:[[109,4]] },
-  { out:[115,1], in:[[110,5]] }, { out:[116,1], in:[[110,8]] }, { out:[117,1], in:[[110,7]] }, { out:[118,1], in:[[110,4]] },
-  { out:[119,1], in:[[136,5]] }, { out:[120,1], in:[[136,8]] }, { out:[121,1], in:[[136,7]] }, { out:[122,1], in:[[136,4]] },
-  { out:[123,1], in:[[134,5]] }, { out:[124,1], in:[[134,8]] }, { out:[125,1], in:[[134,7]] }, { out:[126,1], in:[[134,4]] },
-  { out:[127,1], in:[[123,1],[138,1]] }, { out:[128,1], in:[[124,1],[138,1]] }, { out:[129,1], in:[[125,1],[138,1]] }, { out:[130,1], in:[[126,1],[138,1]] },
+  { out:[111,1], in:[[109,5]], cat:'armor', station:'crafting_table' },
+  { out:[112,1], in:[[109,8]], cat:'armor', station:'crafting_table' },
+  { out:[113,1], in:[[109,7]], cat:'armor', station:'crafting_table' },
+  { out:[114,1], in:[[109,4]], cat:'armor', station:'crafting_table' },
+  { out:[115,1], in:[[110,5]], cat:'armor', station:'crafting_table' },
+  { out:[116,1], in:[[110,8]], cat:'armor', station:'crafting_table' },
+  { out:[117,1], in:[[110,7]], cat:'armor', station:'crafting_table' },
+  { out:[118,1], in:[[110,4]], cat:'armor', station:'crafting_table' },
+  { out:[119,1], in:[[136,5]], cat:'armor', station:'crafting_table' },
+  { out:[120,1], in:[[136,8]], cat:'armor', station:'crafting_table' },
+  { out:[121,1], in:[[136,7]], cat:'armor', station:'crafting_table' },
+  { out:[122,1], in:[[136,4]], cat:'armor', station:'crafting_table' },
+  { out:[123,1], in:[[134,5]], cat:'armor', station:'crafting_table' },
+  { out:[124,1], in:[[134,8]], cat:'armor', station:'crafting_table' },
+  { out:[125,1], in:[[134,7]], cat:'armor', station:'crafting_table' },
+  { out:[126,1], in:[[134,4]], cat:'armor', station:'crafting_table' },
+  { out:[127,1], in:[[123,1],[138,1]], cat:'armor', station:'crafting_table' },
+  { out:[128,1], in:[[124,1],[138,1]], cat:'armor', station:'crafting_table' },
+  { out:[129,1], in:[[125,1],[138,1]], cat:'armor', station:'crafting_table' },
+  { out:[130,1], in:[[126,1],[138,1]], cat:'armor', station:'crafting_table' },
 
   // Redstone & Automation
-  { out:[BLOCK.REDSTONE_TORCH,1], in:[[ITEM.REDSTONE,1],[ITEM.STICK,1]] },
-  { out:[ITEM.REDSTONE_REPEATER,1], in:[[BLOCK.STONE,3],[BLOCK.REDSTONE_TORCH,2],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.REDSTONE_COMPARATOR,1], in:[[BLOCK.STONE,3],[BLOCK.REDSTONE_TORCH,3],[ITEM.QUARTZ,1]] },
-  { out:[ITEM.PISTON,1], in:[[BLOCK.PLANK,3],[BLOCK.STONE,4],[ITEM.INGOT_IRON,1],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.STICKY_PISTON,1], in:[[ITEM.PISTON,1],[ITEM.SLIMEBALL,1]] },
-  { out:[ITEM.DISPENSER,1], in:[[BLOCK.STONE,7],[ITEM.BOW,1],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.DROPPER,1], in:[[BLOCK.STONE,7],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.HOPPER,1], in:[[ITEM.INGOT_IRON,5],[BLOCK.CHEST,1]] },
-  { out:[ITEM.OBSERVER,1], in:[[BLOCK.STONE,6],[ITEM.REDSTONE,2],[ITEM.QUARTZ,1]] },
-  { out:[ITEM.CRAFTER,1], in:[[ITEM.INGOT_IRON,5],[BLOCK.CRAFTING_TABLE,1],[ITEM.REDSTONE,2],[ITEM.DROPPER,1]] },
-  { out:[ITEM.DAYLIGHT_DETECTOR,1], in:[[ITEM.QUARTZ,3],[BLOCK.PLANK,3]] },
-  { out:[ITEM.TRIPWIRE_HOOK,2], in:[[ITEM.INGOT_IRON,1],[ITEM.STICK,1],[BLOCK.PLANK,1]] },
-  { out:[ITEM.REDSTONE_LAMP,1], in:[[BLOCK.GLOWSTONE,1],[ITEM.REDSTONE,4]] },
-  { out:[ITEM.NOTE_BLOCK,1], in:[[BLOCK.PLANK,8],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.JUKEBOX,1], in:[[BLOCK.PLANK,8],[ITEM.DIAMOND,1]] },
-  { out:[ITEM.LEVER,1], in:[[BLOCK.STONE,1],[ITEM.STICK,1]] },
-  { out:[ITEM.STONE_PRESSURE_PLATE,1], in:[[BLOCK.STONE,2]] },
-  { out:[ITEM.WOOD_PRESSURE_PLATE,1], in:[[BLOCK.PLANK,2]] },
-  { out:[ITEM.HEAVY_PRESSURE_PLATE,1], in:[[ITEM.INGOT_IRON,2]] },
-  { out:[ITEM.LIGHT_PRESSURE_PLATE,1], in:[[ITEM.INGOT_GOLD,2]] },
-  { out:[ITEM.STONE_BUTTON,1], in:[[BLOCK.STONE,1]] },
-  { out:[ITEM.WOOD_BUTTON,1], in:[[BLOCK.PLANK,1]] },
-  { out:[ITEM.TARGET_BLOCK,1], in:[[BLOCK.PLANK,1],[ITEM.REDSTONE,4]] },
-  { out:[ITEM.LIGHTNING_ROD,1], in:[[ITEM.COPPER_INGOT,3]] },
-  { out:[BLOCK.REDSTONE_BLOCK,1], in:[[ITEM.REDSTONE,9]] },
+  { out:[BLOCK.REDSTONE_TORCH,1], in:[[ITEM.REDSTONE,1],[ITEM.STICK,1]], cat:'redstone', station:'pocket' },
+  { out:[ITEM.REDSTONE_REPEATER,1], in:[[BLOCK.STONE,3],[BLOCK.REDSTONE_TORCH,2],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.REDSTONE_COMPARATOR,1], in:[[BLOCK.STONE,3],[BLOCK.REDSTONE_TORCH,3],[ITEM.QUARTZ,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.PISTON,1], in:[[BLOCK.PLANK,3],[BLOCK.STONE,4],[ITEM.INGOT_IRON,1],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.STICKY_PISTON,1], in:[[ITEM.PISTON,1],[ITEM.SLIMEBALL,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.DISPENSER,1], in:[[BLOCK.STONE,7],[ITEM.BOW,1],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.DROPPER,1], in:[[BLOCK.STONE,7],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.HOPPER,1], in:[[ITEM.INGOT_IRON,5],[BLOCK.CHEST,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.OBSERVER,1], in:[[BLOCK.STONE,6],[ITEM.REDSTONE,2],[ITEM.QUARTZ,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.CRAFTER,1], in:[[ITEM.INGOT_IRON,5],[BLOCK.CRAFTING_TABLE,1],[ITEM.REDSTONE,2],[ITEM.DROPPER,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.DAYLIGHT_DETECTOR,1], in:[[ITEM.QUARTZ,3],[BLOCK.PLANK,3]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.TRIPWIRE_HOOK,2], in:[[ITEM.INGOT_IRON,1],[ITEM.STICK,1],[BLOCK.PLANK,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.REDSTONE_LAMP,1], in:[[BLOCK.GLOWSTONE,1],[ITEM.REDSTONE,4]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.NOTE_BLOCK,1], in:[[BLOCK.PLANK,8],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.JUKEBOX,1], in:[[BLOCK.PLANK,8],[ITEM.DIAMOND,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.LEVER,1], in:[[BLOCK.STONE,1],[ITEM.STICK,1]], cat:'redstone', station:'pocket' },
+  { out:[ITEM.STONE_PRESSURE_PLATE,1], in:[[BLOCK.STONE,2]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.WOOD_PRESSURE_PLATE,1], in:[[BLOCK.PLANK,2]], cat:'redstone', station:'pocket' },
+  { out:[ITEM.HEAVY_PRESSURE_PLATE,1], in:[[ITEM.INGOT_IRON,2]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.LIGHT_PRESSURE_PLATE,1], in:[[ITEM.INGOT_GOLD,2]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.STONE_BUTTON,1], in:[[BLOCK.STONE,1]], cat:'redstone', station:'pocket' },
+  { out:[ITEM.WOOD_BUTTON,1], in:[[BLOCK.PLANK,1]], cat:'redstone', station:'pocket' },
+  { out:[ITEM.TARGET_BLOCK,1], in:[[BLOCK.PLANK,1],[ITEM.REDSTONE,4]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.LIGHTNING_ROD,1], in:[[ITEM.COPPER_INGOT,3]], cat:'redstone', station:'crafting_table' },
+  { out:[BLOCK.REDSTONE_BLOCK,1], in:[[ITEM.REDSTONE,9]], cat:'redstone', station:'crafting_table' },
 
   // Transportation
-  { out:[ITEM.MINECART,1], in:[[ITEM.INGOT_IRON,5]] },
-  { out:[ITEM.POWERED_RAIL,6], in:[[ITEM.INGOT_GOLD,6],[ITEM.STICK,1],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.DETECTOR_RAIL,6], in:[[ITEM.INGOT_IRON,6],[ITEM.STONE_PRESSURE_PLATE,1],[ITEM.REDSTONE,1]] },
-  { out:[ITEM.ACTIVATOR_RAIL,6], in:[[ITEM.INGOT_IRON,6],[ITEM.STICK,2],[BLOCK.REDSTONE_TORCH,1]] },
-  { out:[BLOCK.RAIL,16], in:[[ITEM.INGOT_IRON,6],[ITEM.STICK,1]] },
-  { out:[ITEM.BOAT,1], in:[[BLOCK.PLANK,5]] },
-  { out:[ITEM.CHEST_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.CHEST,1]] },
-  { out:[ITEM.FURNACE_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.FURNACE,1]] },
-  { out:[ITEM.TNT_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.TNT,1]] },
-  { out:[ITEM.HOPPER_MINECART,1], in:[[ITEM.MINECART,1],[ITEM.HOPPER,1]] },
-  { out:[ITEM.BOAT_CHEST,1], in:[[ITEM.BOAT,1],[BLOCK.CHEST,1]] },
+  { out:[ITEM.MINECART,1], in:[[ITEM.INGOT_IRON,5]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.POWERED_RAIL,6], in:[[ITEM.INGOT_GOLD,6],[ITEM.STICK,1],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.DETECTOR_RAIL,6], in:[[ITEM.INGOT_IRON,6],[ITEM.STONE_PRESSURE_PLATE,1],[ITEM.REDSTONE,1]], cat:'redstone', station:'crafting_table' },
+  { out:[ITEM.ACTIVATOR_RAIL,6], in:[[ITEM.INGOT_IRON,6],[ITEM.STICK,2],[BLOCK.REDSTONE_TORCH,1]], cat:'redstone', station:'crafting_table' },
+  { out:[BLOCK.RAIL,16], in:[[ITEM.INGOT_IRON,6],[ITEM.STICK,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.BOAT,1], in:[[BLOCK.PLANK,5]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.CHEST_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.CHEST,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.FURNACE_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.FURNACE,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.TNT_MINECART,1], in:[[ITEM.MINECART,1],[BLOCK.TNT,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.HOPPER_MINECART,1], in:[[ITEM.MINECART,1],[ITEM.HOPPER,1]], cat:'tools', station:'crafting_table' },
+  { out:[ITEM.BOAT_CHEST,1], in:[[ITEM.BOAT,1],[BLOCK.CHEST,1]], cat:'tools', station:'crafting_table' },
 
-  // Alchemy & Enchanting
-  { out:[ITEM.BREWING_STAND,1], in:[[ITEM.BLAZE,1],[BLOCK.STONE,3]] },
-  { out:[ITEM.CAULDRON,1], in:[[ITEM.INGOT_IRON,7]] },
-  { out:[BLOCK.ENCHANTING_TABLE,1], in:[[ITEM.LEATHER,1],[ITEM.DIAMOND,2],[BLOCK.OBSIDIAN,4]] },
-  { out:[BLOCK.ANVIL,1], in:[[ITEM.INGOT_IRON,31]] },
-  { out:[ITEM.GRINDSTONE,1], in:[[ITEM.STICK,2],[BLOCK.STONE,1],[BLOCK.PLANK,2]] },
-  { out:[ITEM.STONECUTTER,1], in:[[ITEM.INGOT_IRON,1],[BLOCK.STONE,3]] },
-  { out:[ITEM.LOOM,1], in:[[BLOCK.PLANK,2],[ITEM.STRING,2]] },
-  { out:[ITEM.CARTOGRAPHY_TABLE,1], in:[[BLOCK.PLANK,4]] },
-  { out:[ITEM.FLETCHING_TABLE,1], in:[[BLOCK.PLANK,4],[ITEM.FLINT,2]] },
-  { out:[ITEM.SMITHING_TABLE,1], in:[[ITEM.INGOT_IRON,2],[BLOCK.PLANK,4]] },
-  { out:[BLOCK.BEACON,1], in:[[ITEM.NETHER_STAR,1],[BLOCK.OBSIDIAN,3],[BLOCK.STONE,5]] },
-  { out:[ITEM.GLASS_BOTTLE,3], in:[[BLOCK.SAND,3]] },
-  { out:[ITEM.GLISTERING_MELON,1], in:[[ITEM.GOLD_NUGGET,8],[ITEM.APPLE,1]] },
-  { out:[ITEM.GOLDEN_CARROT,1], in:[[ITEM.GOLD_NUGGET,8],[ITEM.CARROT,1]] },
-  { out:[ITEM.MAGMA_CREAM,1], in:[[ITEM.SLIMEBALL,1],[ITEM.BLAZE,1]] },
-  { out:[ITEM.FIRE_CHARGE,3], in:[[ITEM.BLAZE,1],[ITEM.COAL,1],[ITEM.GUNPOWDER,1]] },
-  { out:[BLOCK.TNT,1], in:[[ITEM.GUNPOWDER,5],[BLOCK.SAND,4]] },
-  { out:[ITEM.EYE,1],    in:[[ITEM.BLAZE,1],[ITEM.COAL,2]] },
+  // Alchemy & Utilities
+  { out:[ITEM.BREWING_STAND,1], in:[[ITEM.BLAZE,1],[BLOCK.STONE,3]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.CAULDRON,1], in:[[ITEM.INGOT_IRON,7]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.ENCHANTING_TABLE,1], in:[[ITEM.LEATHER,1],[ITEM.DIAMOND,2],[BLOCK.OBSIDIAN,4]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.ANVIL,1], in:[[ITEM.INGOT_IRON,31]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.GRINDSTONE,1], in:[[ITEM.STICK,2],[BLOCK.STONE,1],[BLOCK.PLANK,2]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.STONECUTTER,1], in:[[ITEM.INGOT_IRON,1],[BLOCK.STONE,3]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.LOOM,1], in:[[BLOCK.PLANK,2],[ITEM.STRING,2]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.CARTOGRAPHY_TABLE,1], in:[[BLOCK.PLANK,4]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.FLETCHING_TABLE,1], in:[[BLOCK.PLANK,4],[ITEM.FLINT,2]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.SMITHING_TABLE,1], in:[[ITEM.INGOT_IRON,2],[BLOCK.PLANK,4]], cat:'building', station:'crafting_table' },
+  { out:[BLOCK.BEACON,1], in:[[ITEM.NETHER_STAR,1],[BLOCK.OBSIDIAN,3],[BLOCK.STONE,5]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.GLASS_BOTTLE,3], in:[[BLOCK.SAND,3]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.GLISTERING_MELON,1], in:[[ITEM.GOLD_NUGGET,8],[ITEM.APPLE,1]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.GOLDEN_CARROT,1], in:[[ITEM.GOLD_NUGGET,8],[ITEM.CARROT,1]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.MAGMA_CREAM,1], in:[[ITEM.SLIMEBALL,1],[ITEM.BLAZE,1]], cat:'building', station:'pocket' },
+  { out:[ITEM.FIRE_CHARGE,3], in:[[ITEM.BLAZE,1],[ITEM.COAL,1],[ITEM.GUNPOWDER,1]], cat:'tools', station:'crafting_table' },
+  { out:[BLOCK.TNT,1], in:[[ITEM.GUNPOWDER,5],[BLOCK.SAND,4]], cat:'building', station:'crafting_table' },
+  { out:[ITEM.EYE,1],    in:[[ITEM.BLAZE,1],[ITEM.COAL,2]], cat:'tools', station:'pocket' },
 
-  // Smelting & Ingot Crafting
-  { out:[ITEM.COPPER_INGOT,1], in:[[ITEM.RAW_COPPER,1],[ITEM.COAL,1]] },
-  { out:[ITEM.INGOT_GOLD,1], in:[[ITEM.GOLD_NUGGET,9]] },
-  { out:[ITEM.GOLD_NUGGET,9], in:[[ITEM.INGOT_GOLD,1]] },
-  { out:[ITEM.NETHERITE_SCRAP,1], in:[[BLOCK.ANCIENTDEBRIS,1],[ITEM.COAL,1]] },
-  { out:[ITEM.NETHERITE_INGOT,1], in:[[ITEM.NETHERITE_SCRAP,4],[ITEM.INGOT_GOLD,4]] }
+  // 🔥 Smelting & Ingot Recipes (Furnace Required)
+  { out:[ITEM.INGOT_IRON,1], in:[[BLOCK.IRON,1],[ITEM.COAL,1]], cat:'smelting', station:'furnace' },
+  { out:[ITEM.COPPER_INGOT,1], in:[[ITEM.RAW_COPPER,1],[ITEM.COAL,1]], cat:'smelting', station:'furnace' },
+  { out:[ITEM.COOKED_PORK,1], in:[[ITEM.PORK,1],[ITEM.COAL,1]], cat:'smelting', station:'furnace' },
+  { out:[ITEM.COOKED_BEEF,1], in:[[ITEM.BEEF,1],[ITEM.COAL,1]], cat:'smelting', station:'furnace' },
+  { out:[ITEM.NETHERITE_SCRAP,1], in:[[BLOCK.ANCIENTDEBRIS,1],[ITEM.COAL,1]], cat:'smelting', station:'furnace' },
+  { out:[ITEM.INGOT_GOLD,1], in:[[ITEM.GOLD_NUGGET,9]], cat:'smelting', station:'pocket' },
+  { out:[ITEM.GOLD_NUGGET,9], in:[[ITEM.INGOT_GOLD,1]], cat:'smelting', station:'pocket' },
+  { out:[ITEM.NETHERITE_INGOT,1], in:[[ITEM.NETHERITE_SCRAP,4],[ITEM.INGOT_GOLD,4]], cat:'smelting', station:'crafting_table' }
 ];
+
+/* ============================ INGREDIENT SOURCES GUIDE ============================ */
+const INGREDIENT_SOURCES = {
+  [BLOCK.WOOD]: 'Chop trees in forest biomes with your bare hands or an axe.',
+  [BLOCK.PLANK]: 'Crafted from Wood Logs (1 Log = 4 Planks) in your inventory.',
+  [ITEM.STICK]: 'Crafted from 2 Wood Planks in your inventory, or drops from leaves.',
+  [BLOCK.STONE]: 'Mined from stone mountains and caves with any pickaxe.',
+  [BLOCK.DIRT]: 'Dig grassy ground or soil anywhere in the Overworld with a shovel or hands.',
+  [BLOCK.SAND]: 'Dig shores, riverbanks, and beaches with a shovel.',
+  [BLOCK.LEAVES]: 'Chop tree canopies (shear with shears for blocks, or break for apples/sticks).',
+  [BLOCK.WATER]: 'Found in rivers, lakes, and oceans. Scoop with an iron bucket.',
+  [BLOCK.LAVA]: 'Found in deep underground ravines (below y=9) or in the Nether. Scoop with an iron bucket.',
+  [BLOCK.OBSIDIAN]: 'Pour a Water Bucket onto Lava sources, then mine with a Diamond Pickaxe.',
+  [BLOCK.NETHERRACK]: 'Mined in huge quantities everywhere across the Nether dimension.',
+  [BLOCK.SOULSAND]: 'Found along cavern floors and soul sand valleys in the Nether.',
+  [BLOCK.GLOWSTONE]: 'Found hanging in stalactite clusters from the Nether cavern ceilings.',
+  [BLOCK.CRAFTING_TABLE]: 'Crafted from 4 Wood Planks. Place it in world and right-click to open 3x3 workbench recipes!',
+  [BLOCK.FURNACE]: 'Crafted from 8 Cobblestone. Place in world and right-click to smelt ores and cook food.',
+  [BLOCK.CHEST]: 'Crafted from 8 Wood Planks. Place and right-click for chest storage.',
+  [BLOCK.TNT]: 'Crafted from 5 Gunpowder + 4 Sand. Explodes when broken or ignited.',
+  [BLOCK.BOOKSHELF]: 'Crafted from 6 Wood Planks + 3 Books.',
+  [BLOCK.BED]: 'Crafted from 3 Wool + 3 Wood Planks. Right-click at night to sleep until dawn!',
+  [ITEM.COAL]: 'Mined from Coal Ore veins embedded in stone throughout caves.',
+  [ITEM.INGOT_IRON]: 'Mined as Iron Ore in caves, then smelted with coal in a furnace (or rare zombie drop).',
+  [ITEM.RAW_COPPER]: 'Mined from Copper Ore veins in caves with any pickaxe.',
+  [ITEM.COPPER_INGOT]: 'Smelt Raw Copper in a Furnace with Coal.',
+  [ITEM.LAPIS]: 'Mined from deep blue Lapis Ore veins underground.',
+  [ITEM.REDSTONE]: 'Mined from glowing Redstone Ore veins deep underground (below y=16).',
+  [ITEM.DIAMOND]: 'Mined from Diamond Ore deep in caves (below y=12) using an iron pickaxe.',
+  [ITEM.EMERALD]: 'Mined from rare Emerald Ore veins in high terrain with an iron pickaxe.',
+  [ITEM.GOLD_NUGGET]: 'Mined from Nether Gold Ore in the Nether, or craft 1 Gold Ingot into 9 nuggets.',
+  [ITEM.INGOT_GOLD]: 'Crafted from 9 Gold Nuggets, or mined in the Nether.',
+  [ITEM.NETHERITE_SCRAP]: 'Mined from Ancient Debris in deep Nether caves and smelted with coal in a furnace.',
+  [ITEM.NETHERITE_INGOT]: 'Crafted from 4 Netherite Scraps + 4 Gold Ingots.',
+  [ITEM.STRING]: 'Obtained by shearing or defeating mobs, or crafted from 1 Wool block (1 Wool = 4 String).',
+  [ITEM.FEATHER]: 'Dropped by chickens/birds or zombies.',
+  [ITEM.GUNPOWDER]: 'Dropped when defeating Creepers before they explode.',
+  [ITEM.SLIMEBALL]: 'Dropped by slimes or bouncy swamp mobs.',
+  [ITEM.QUARTZ]: 'Mined from Nether Quartz Ore in the Nether with any pickaxe.',
+  [ITEM.BLAZE]: 'Dropped by flying Blazes in Nether fortresses and bridges.',
+  [ITEM.EYE]: 'Crafted from Blaze Powder + Coal to locate and activate the End Portal.',
+  [ITEM.LEATHER]: 'Dropped by Cows in the Overworld.',
+  [ITEM.BEEF]: 'Dropped by Cows (can be cooked into Steak in a furnace).',
+  [ITEM.PORK]: 'Dropped by Pigs (can be cooked into Cooked Porkchop in a furnace).',
+  [ITEM.WOOL]: 'Crafted cleanly from 4 Strings in your pocket or crafting table.',
+  [ITEM.BOOK]: 'Crafted from 1 Leather + 3 Strings (or paper).',
+  [ITEM.COOKED_PORK]: 'Smelt raw Porkchop with Coal in a Furnace.',
+  [ITEM.COOKED_BEEF]: 'Smelt raw Beef with Coal in a Furnace to make Steak.',
+  [ITEM.BUCKET]: 'Crafted from 3 Iron Ingots. Use to scoop water, lava, or milk cows.',
+  [ITEM.WATER_BUCKET]: 'Use an empty Bucket on any water block in rivers or oceans.',
+  [ITEM.LAVA_BUCKET]: 'Use an empty Bucket on lava in deep caves or the Nether.',
+  [ITEM.MILK_BUCKET]: 'Right-click a live Cow with an empty Bucket to milk it!',
+  [ITEM.SHEARS]: 'Crafted from 2 Iron Ingots. Rapidly breaks leaves and foliage.',
+  [ITEM.FLINT]: 'Crafted from 1 Iron Ingot + 1 Coal to make Flint & Steel.'
+};
+function showIngredientSource(id){
+  const name = itemName(id);
+  const src = INGREDIENT_SOURCES[id] || 'Explore the world, caves, or the Nether to obtain this item.';
+  toast('💡 ' + name + ': ' + src, 4500);
+}
+window.showIngredientSource = showIngredientSource;
+
+/* ============================ CRAFTING STATIONS & CHEST STORAGE ============================ */
+let currentStation = 'pocket'; // 'pocket' | 'crafting_table' | 'furnace'
+let currentRecipeCat = 'all';
+let recipeSearchQuery = '';
+
+function openStation(type){
+  currentStation = type;
+  if(type === 'crafting_table'){
+    currentRecipeCat = 'all';
+    toast('🛠️ Crafting Table opened! 3x3 Workbench unlocked.', 2200);
+  } else if(type === 'furnace'){
+    currentRecipeCat = 'smelting';
+    toast('🔥 Furnace opened! Smelting & cooking active.', 2200);
+  }
+  if(!uiOpen) toggleInv();
+  else buildInvPanel();
+}
+window.openStation = openStation;
+
+function filterRecipes(cat){
+  currentRecipeCat = cat;
+  document.querySelectorAll('.rec-cat-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+  });
+  buildInvPanel();
+}
+window.filterRecipes = filterRecipes;
+
+function onRecipeSearch(query){
+  recipeSearchQuery = (query || '').toLowerCase().trim();
+  buildInvPanel();
+}
+window.onRecipeSearch = onRecipeSearch;
+
+function trySleep(){
+  if(currentDim !== 'overworld'){
+    toast('⚠️ Beds explode when used in the Nether or End!', 2500);
+    return;
+  }
+  const angle = (dayTime / DAY_LENGTH) * Math.PI * 2;
+  const sunH = Math.sin(angle);
+  if(sunH < 0){
+    dayTime = 60; // Sunrise
+    player.health = player.maxHealth;
+    sfx('eat');
+    toast('💤 You slept peacefully through the night. Good morning!', 3500);
+  } else {
+    toast('You can only sleep at night or during thunderstorms.', 2200);
+  }
+}
+
+function tryShearNearbySheep(){
+  toast('Sheep have been retired from the game! Craft wool easily with 4 String in your crafting panel.', 2200);
+  return false;
+}
+
+// Chest Storage System
+let currentChestKey = null;
+const worldChests = {}; // 'x,y,z' -> Array(27)
+
+function openChest(x, y, z){
+  currentChestKey = `${x},${y},${z}`;
+  if(!worldChests[currentChestKey]){
+    worldChests[currentChestKey] = new Array(27).fill(null);
+  }
+  $('chestModal').style.display = 'flex';
+  if(document.pointerLockElement) document.exitPointerLock();
+  renderChestUI();
+}
+window.openChest = openChest;
+
+function closeChestUI(){
+  $('chestModal').style.display = 'none';
+  currentChestKey = null;
+  lockPointer();
+}
+window.closeChestUI = closeChestUI;
+
+function renderChestUI(){
+  if(!currentChestKey) return;
+  const cData = worldChests[currentChestKey];
+  const cGrid = $('chestGrid'); cGrid.innerHTML = '';
+  cData.forEach((slot, idx) => {
+    const div = document.createElement('div');
+    div.className = 'slot'; div.style.transform = 'none';
+    div.innerHTML = slot ? `<img src="${getIcon(slot.id)}"><span class="count">${slot.count > 1 ? slot.count : ''}</span>` : '';
+    div.onclick = e => {
+      e.preventDefault();
+      if(!slot) return;
+      // Withdraw to player backpack
+      const leftover = addItem(slot.id, slot.count);
+      if(leftover === 0) cData[idx] = null;
+      else slot.count = leftover;
+      sfx('place');
+      onInvChanged();
+      renderChestUI();
+    };
+    cGrid.appendChild(div);
+  });
+
+  const pGrid = $('chestPlayerGrid'); pGrid.innerHTML = '';
+  inventory.forEach((slot, idx) => {
+    const div = document.createElement('div');
+    div.className = 'slot'; div.style.transform = 'none';
+    div.innerHTML = slot ? `<img src="${getIcon(slot.id)}"><span class="count">${slot.count > 1 ? slot.count : ''}</span>` : '';
+    div.onclick = e => {
+      e.preventDefault();
+      if(!slot) return;
+      // Deposit into chest: first try stacking with matching slot
+      let placed = false;
+      for(let ci = 0; ci < 27; ci++){
+        if(cData[ci] && cData[ci].id === slot.id && cData[ci].count < 64){
+          const room = 64 - cData[ci].count;
+          const amt = Math.min(room, slot.count);
+          cData[ci].count += amt; slot.count -= amt;
+          if(slot.count <= 0) inventory[idx] = null;
+          placed = true;
+          break;
+        }
+      }
+      if(!placed && slot.count > 0){
+        for(let ci = 0; ci < 27; ci++){
+          if(!cData[ci]){
+            cData[ci] = { id: slot.id, count: slot.count };
+            inventory[idx] = null;
+            placed = true;
+            break;
+          }
+        }
+      }
+      if(!placed) toast('Chest is full!', 1500);
+      else sfx('place');
+      onInvChanged();
+      renderChestUI();
+    };
+    pGrid.appendChild(div);
+  });
+}
+
 function canCraft(r){ return r.in.every(p => countItem(p[0]) >= p[1]); }
 function craft(r){
-  if(!canCraft(r)) return;
+  if(!canCraft(r)){
+    toast('Missing ingredients! Click each ingredient chip to view source guide.', 2500);
+    return;
+  }
   r.in.forEach(p => removeItem(p[0], p[1]));
   addItem(r.out[0], r.out[1]);
   sfx('craft');
+  toast('Crafted ' + itemName(r.out[0]) + (r.out[1]>1?' x'+r.out[1]:''), 1500);
+  buildInvPanel();
 }
 
 /* ============================ HAND ============================ */
@@ -2277,7 +2725,7 @@ $('startFullBtn').addEventListener('click', () => {
 });
 
 /* ============================ RAYCAST ============================ */
-function raycastVoxel(origin, dir, maxDist){
+function raycastVoxel(origin, dir, maxDist, includeLiquids = false){
   let x = Math.floor(origin.x), y = Math.floor(origin.y), z = Math.floor(origin.z);
   const stepX = dir.x>0?1:-1, stepY = dir.y>0?1:-1, stepZ = dir.z>0?1:-1;
   const tDeltaX = dir.x!==0 ? Math.abs(1/dir.x) : Infinity;
@@ -2288,7 +2736,7 @@ function raycastVoxel(origin, dir, maxDist){
   let dist = 0, lastNormal = [0,0,0];
   for(let i=0;i<64;i++){
     const b = getBlock(x,y,z);
-    if(b !== 0 && b !== 7 && b !== 12 && b !== 15 && b !== 17) return { x,y,z, block:b, normal:lastNormal, dist };
+    if(b !== 0 && (includeLiquids || (b !== 7 && b !== 12)) && b !== 15 && b !== 17) return { x,y,z, block:b, normal:lastNormal, dist };
     if(tMaxX < tMaxY && tMaxX < tMaxZ){ x += stepX; dist = tMaxX; tMaxX += tDeltaX; lastNormal=[-stepX,0,0]; }
     else if(tMaxY < tMaxZ){ y += stepY; dist = tMaxY; tMaxY += tDeltaY; lastNormal=[0,-stepY,0]; }
     else { z += stepZ; dist = tMaxZ; tMaxZ += tDeltaZ; lastNormal=[0,0,-stepZ]; }
@@ -2360,6 +2808,15 @@ function buildModel(mob){
       b.box(g,.08,.15,.08,0xeeeeee,-.22,1.38,.72); b.box(g,.08,.15,.08,0xeeeeee,.22,1.38,.72);
       b.box(g,.08,.08,.04,0x111111,-.14,1.15,.96,true); b.box(g,.08,.08,.04,0x111111,.14,1.15,.96,true);
       mob.legs = [b.limb(g,.2,.55,.2,br,-.22,.55,.4), b.limb(g,.2,.55,.2,br,.22,.55,.4), b.limb(g,.2,.55,.2,br,-.22,.55,-.4), b.limb(g,.2,.55,.2,br,.22,.55,-.4)];
+      break; }
+    case 'sheep': {
+      const wh = 0xf5f5fa, sk = 0xcca585, dk = 0x8a725e;
+      b.box(g, .72, .62, 1.1, wh, 0, .85, 0);
+      b.box(g, .45, .42, .42, sk, 0, 1.05, .66);
+      b.box(g, .48, .2, .24, wh, 0, 1.2, .58);
+      b.box(g, .08, .08, .04, 0x111111, -.12, 1.08, .88, true);
+      b.box(g, .08, .08, .04, 0x111111, .12, 1.08, .88, true);
+      mob.legs = [b.limb(g,.16,.4,.16,dk,-.18,.35,.32), b.limb(g,.16,.4,.16,dk,.18,.35,.32), b.limb(g,.16,.4,.16,dk,-.18,.35,-.32), b.limb(g,.16,.4,.16,dk,.18,.35,-.32)];
       break; }
     case 'zombie': {
       const skin = 0x5f9a4a, shirt = 0x2f8f9f, pants = 0x35358a;
@@ -2568,7 +3025,7 @@ function updateMobs(dt){
     } else {
       const isPeaceful = (window.MCModes && (window.MCModes.getMode() === 'creative' || window.MCModes.isSpectator()));
       switch(m.type){
-        case 'pig': case 'cow':
+        case 'pig': case 'cow': case 'sheep':
           if(m.fleeT > 0){ m.fleeT -= dt; moveMob(m, dt, -nx, -nz, d.speed*2.4); turnTo(m, Math.atan2(-nx,-nz), dt*6); }
           else wander(m, dt, d.speed);
           break;
@@ -2726,6 +3183,7 @@ function killMob(m){
   switch(m.type){
     case 'pig': giveDrop(ITEM.PORK, rand(2)); msg = '+ Porkchop'; break;
     case 'cow': giveDrop(ITEM.BEEF, rand(2)); if(Math.random() < 0.7) giveDrop(ITEM.LEATHER, rand(2)); msg = '+ Beef'; break;
+    case 'sheep': giveDrop(ITEM.WOOL, 1 + rand(2)); giveDrop(ITEM.PORK, 1); msg = '+ Wool & Meat'; break;
     case 'zombie':
       if(Math.random() < 0.35){ giveDrop(ITEM.APPLE,1); msg = '+ Apple'; }
       if(Math.random() < 0.25){ giveDrop(ITEM.INGOT_IRON,1); msg = '+ Iron Ingot'; }
@@ -2776,7 +3234,7 @@ function spawnPassiveNear(minD, maxD){
     const x = Math.floor(player.pos.x + Math.cos(a)*dist), z = Math.floor(player.pos.z + Math.sin(a)*dist);
     if(!chunkLoaded(x,z)) continue;
     const s = surfaceSpawnY(x,z);
-    if(s && s.block === BLOCK.GRASS){ spawnMob(Math.random()<0.5?'pig':'cow', x+0.5, s.y, z+0.5); return true; }
+    if(s && s.block === BLOCK.GRASS){ const r=Math.random(); spawnMob(r<0.5?'pig':'cow', x+0.5, s.y, z+0.5); return true; }
   }
   return false;
 }
@@ -2793,7 +3251,7 @@ function spawnAttempt(){
     const night = sunHeight < 0.0;
     const s = surfaceSpawnY(x,z);
     if(s && night && hostiles < 8 && !isPeaceful && Math.random() < 0.7){ spawnMob(Math.random()<0.62?'zombie':'creeper', x+0.5, s.y, z+0.5); return; }
-    if(s && s.block === BLOCK.GRASS && passives < 10 && (!night || Math.random()<0.2)){ spawnMob(Math.random()<0.5?'pig':'cow', x+0.5, s.y, z+0.5); return; }
+    if(s && s.block === BLOCK.GRASS && passives < 10 && (!night || Math.random()<0.2)){ const r=Math.random(); spawnMob(r<0.5?'pig':'cow', x+0.5, s.y, z+0.5); return; }
     if(hostiles < 8 && !isPeaceful && Math.random() < 0.5){
       for(let i=0;i<8;i++){
         const y = 2 + Math.floor(Math.random()*24);
@@ -3084,8 +3542,153 @@ function updateActions(dt){
 function useItem(){
   const slot = inventory[selectedSlot];
   swingT = 0;
+
+  // 1. Raycast world station blocks (Crafting Table, Furnace, Chest, Bed)
+  // When sneaking (Shift), player bypasses station to place blocks against it
+  const sneak = (keys && (keys['ShiftLeft'] || keys['ShiftRight'])) || sprintToggle;
+  const stationHit = raycastVoxel(eyePos(), getLookDir(), 5);
+  if(stationHit && !sneak){
+    const b = stationHit.block;
+    if(b === BLOCK.CRAFTING_TABLE){
+      openStation('crafting_table');
+      return;
+    }
+    if(b === BLOCK.FURNACE || b === BLOCK.BLAST_FURNACE || b === BLOCK.SMOKER){
+      openStation('furnace');
+      return;
+    }
+    if(b === BLOCK.CHEST || b === BLOCK.BARREL){
+      openChest(stationHit.x, stationHit.y, stationHit.z);
+      return;
+    }
+    if(b === BLOCK.BED){
+      trySleep();
+      return;
+    }
+  }
+
+  // 2. Shearing live sheep
+  if(slot && slot.id === ITEM.SHEARS){
+    if(tryShearNearbySheep()) return;
+  }
+
   if(!slot) return;
   const id = slot.id, info = ITEMS[id];
+
+  // --- Buckets & Liquids System ---
+  if(id === ITEM.BUCKET){
+    // 1. Check if aiming near/at a cow to milk it
+    if(target && target.kind === 'mob' && target.m.type === 'cow'){
+      sfx('eat');
+      if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+        if(slot.count > 1){ slot.count--; addItem(ITEM.MILK_BUCKET, 1); }
+        else slot.id = ITEM.MILK_BUCKET;
+      } else {
+        addItem(ITEM.MILK_BUCKET, 1);
+      }
+      onInvChanged();
+      toast('🥛 Milked Cow! Obtained Milk Bucket.', 2000);
+      return;
+    }
+    for(const m of mobs){
+      if(!m.dead && m.type === 'cow'){
+        const dist = Math.hypot(m.pos.x - player.pos.x, m.pos.z - player.pos.z);
+        if(dist < 3.8 && Math.abs(m.pos.y - player.pos.y) < 2.5){
+          sfx('eat');
+          if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+            if(slot.count > 1){ slot.count--; addItem(ITEM.MILK_BUCKET, 1); }
+            else slot.id = ITEM.MILK_BUCKET;
+          } else {
+            addItem(ITEM.MILK_BUCKET, 1);
+          }
+          onInvChanged();
+          toast('🥛 Milked Cow! Obtained Milk Bucket.', 2000);
+          return;
+        }
+      }
+    }
+
+    // 2. Liquid scooping (Water & Lava)
+    const liqHit = raycastVoxel(eyePos(), getLookDir(), 6, true);
+    if(liqHit && (liqHit.block === BLOCK.WATER || liqHit.block === BLOCK.LAVA)){
+      const isWater = liqHit.block === BLOCK.WATER;
+      setBlock(liqHit.x, liqHit.y, liqHit.z, BLOCK.AIR);
+      netEdit(liqHit.x, liqHit.y, liqHit.z, BLOCK.AIR);
+      rebuildAround(liqHit.x, liqHit.z);
+
+      const newId = isWater ? ITEM.WATER_BUCKET : ITEM.LAVA_BUCKET;
+      if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+        if(slot.count > 1){ slot.count--; addItem(newId, 1); }
+        else slot.id = newId;
+      } else {
+        addItem(newId, 1);
+      }
+      sfx(isWater ? 'place' : 'hiss');
+      onInvChanged();
+      toast(isWater ? '💧 Scooped Water! (Water Bucket)' : '🔥 Scooped Lava! (Lava Bucket)', 2000);
+      return;
+    }
+    toast('Empty Bucket: Aim at water, lava, or a cow to scoop!', 2000);
+    return;
+  }
+
+  if(id === ITEM.WATER_BUCKET){
+    const hit = raycastVoxel(eyePos(), getLookDir(), 6);
+    if(hit){
+      let px, py, pz;
+      if(isPlant(hit.block)){ px = hit.x; py = hit.y; pz = hit.z; }
+      else { px = hit.x + hit.normal[0]; py = hit.y + hit.normal[1]; pz = hit.z + hit.normal[2]; }
+
+      setBlock(px, py, pz, BLOCK.WATER);
+      netEdit(px, py, pz, BLOCK.WATER);
+      rebuildAround(px, pz);
+      checkWaterFlow(px, py, pz);
+
+      if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+        slot.id = ITEM.BUCKET;
+      }
+      sfx('place');
+      onInvChanged();
+      toast('Placed Water Source!', 1500);
+      return;
+    }
+  }
+
+  if(id === ITEM.LAVA_BUCKET){
+    const hit = raycastVoxel(eyePos(), getLookDir(), 6);
+    if(hit){
+      let px, py, pz;
+      if(isPlant(hit.block)){ px = hit.x; py = hit.y; pz = hit.z; }
+      else { px = hit.x + hit.normal[0]; py = hit.y + hit.normal[1]; pz = hit.z + hit.normal[2]; }
+
+      setBlock(px, py, pz, BLOCK.LAVA);
+      netEdit(px, py, pz, BLOCK.LAVA);
+      rebuildAround(px, pz);
+      checkWaterFlow(px, py, pz);
+
+      if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+        slot.id = ITEM.BUCKET;
+      }
+      sfx('hiss');
+      onInvChanged();
+      toast('Placed Lava Source!', 1500);
+      return;
+    }
+  }
+
+  if(id === ITEM.MILK_BUCKET){
+    sfx('eat');
+    player.hunger = Math.min(player.maxHunger, player.hunger + 2);
+    player.health = Math.min(player.maxHealth, player.health + 2);
+    player.lavaT = 0;
+    if(!(window.MCModes && window.MCModes.hasInfiniteItems())){
+      slot.id = ITEM.BUCKET;
+    }
+    onInvChanged();
+    toast('🥛 Drank milk! All status effects and burns cleared.', 2500);
+    return;
+  }
+
   if(info && info.food){
     if(player.hunger < player.maxHunger){
       player.hunger = Math.min(player.maxHunger, player.hunger + info.food);
@@ -3321,6 +3924,17 @@ function updatePhysics(dt){
 
   if(player.onGround || inLiq) player.peak = player.pos.y; else player.peak = Math.max(player.peak, player.pos.y);
 
+  if(player.onGround && !inLiq){
+    const moved = Math.hypot(disp.x, disp.z);
+    if(moved > 0.001){
+      player.stepDist = (player.stepDist || 0) + moved;
+      if(player.stepDist > (player.sprinting ? 1.7 : 2.3)){
+        player.stepDist = 0;
+        sfx('step');
+      }
+    }
+  }
+
   if(inLava){ player.lavaT += dt; if(player.lavaT > 0.5){ player.lavaT = 0; damagePlayer(4, null, true); } } else player.lavaT = 0;
   if(player.pos.y < -10) damagePlayer(999, null, true);
 }
@@ -3460,6 +4074,29 @@ function updateHotbarUI(){
   }
 }
 function buildInvPanel(){
+  // Update Station Banner
+  const stTitle = $('stationTitle'), stHint = $('stationHint'), stBanner = $('craftingStationBanner');
+  if(stTitle && stBanner){
+    if(currentStation === 'crafting_table'){
+      stTitle.innerHTML = '🛠️ Crafting Table Active (3x3 Workbench)';
+      if(stHint) stHint.textContent = 'All workbench and advanced tool/armor recipes unlocked';
+      stBanner.style.background = '#3c2810'; stBanner.style.borderColor = '#854d0e'; stBanner.style.color = '#ffea9f';
+    } else if(currentStation === 'furnace'){
+      stTitle.innerHTML = '🔥 Furnace Active (Smelting & Cooking)';
+      if(stHint) stHint.textContent = 'Smelt raw iron, copper, ancient debris, and cook meats with coal';
+      stBanner.style.background = '#3c1810'; stBanner.style.borderColor = '#b91c1c'; stBanner.style.color = '#ffb09f';
+    } else {
+      stTitle.innerHTML = '🎒 Pocket Crafting (2x2)';
+      if(stHint) stHint.textContent = 'Right-click a Crafting Table or Furnace in world for full 3x3 station';
+      stBanner.style.background = '#283a20'; stBanner.style.borderColor = '#4a8027'; stBanner.style.color = '#d4f5b2';
+    }
+  }
+
+  // Update category buttons active state
+  document.querySelectorAll('.rec-cat-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-cat') === currentRecipeCat);
+  });
+
   const arow = $('armorRow'); arow.innerHTML = '';
   [['head','Head'],['chest','Chest'],['legs','Legs'],['feet','Feet']].forEach(pair => {
     const k = pair[0], div = document.createElement('div');
@@ -3489,15 +4126,55 @@ function buildInvPanel(){
     div.addEventListener(IS_TOUCH ? 'touchstart' : 'click', h, {passive:false});
     grid.appendChild(div);
   });
+
+  // Filter recipes based on category, search query, and current station
   const rc = $('recipes'); rc.innerHTML = '';
-  RECIPES.forEach(r => {
+  let filtered = RECIPES.filter(r => {
+    if(currentRecipeCat !== 'all' && r.cat !== currentRecipeCat) return false;
+    if(recipeSearchQuery){
+      const outName = itemName(r.out[0]).toLowerCase();
+      const inNames = r.in.map(p => itemName(p[0]).toLowerCase()).join(' ');
+      if(!outName.includes(recipeSearchQuery) && !inNames.includes(recipeSearchQuery)) return false;
+    }
+    return true;
+  });
+
+  if(filtered.length === 0){
+    const emptyDiv = document.createElement('div');
+    emptyDiv.style.cssText = 'color:#666;font-size:13px;padding:12px;text-align:center;font-weight:bold';
+    emptyDiv.textContent = 'No recipes found for this filter/search.';
+    rc.appendChild(emptyDiv);
+    return;
+  }
+
+  filtered.forEach(r => {
     const row = document.createElement('div'); row.className = 'rec';
-    const cost = r.in.map(p => p[1]+' '+itemName(p[0])).join(' + ');
-    row.innerHTML = '<img src="'+getIcon(r.out[0])+'"><div class="info"><div>'+itemName(r.out[0])+(r.out[1]>1?' x'+r.out[1]:'')+'</div><div class="cost">'+cost+'</div></div>';
-    const btn = document.createElement('button'); btn.textContent = 'Craft'; btn.disabled = !canCraft(r);
+    const stBadge = r.station === 'furnace'
+      ? '<span class="rec-station-badge furnace">🔥 Furnace</span>'
+      : (r.station === 'crafting_table'
+        ? '<span class="rec-station-badge table">🛠️ Table</span>'
+        : '<span class="rec-station-badge pocket">🎒 Pocket</span>');
+
+    const outItemName = itemName(r.out[0]);
+    const outCount = r.out[1] > 1 ? ' x' + r.out[1] : '';
+    const ingredientsText = r.in.map(p => `${p[1]} ${itemName(p[0])}`).join(' + ');
+
+    row.innerHTML = `
+      <img src="${getIcon(r.out[0])}" class="rec-icon" title="${outItemName}">
+      <div class="rec-info">
+        <div class="rec-title">${outItemName}${outCount}</div>
+        <div class="rec-cost">${ingredientsText}</div>
+      </div>
+    `;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Craft';
+    const canDo = canCraft(r);
+    btn.disabled = !canDo;
     const h = e => { e.preventDefault(); craft(r); };
     btn.addEventListener(IS_TOUCH ? 'touchstart' : 'click', h, {passive:false});
-    row.appendChild(btn); rc.appendChild(row);
+    row.appendChild(btn);
+    rc.appendChild(row);
   });
 }
 function invClick(i){
@@ -3522,7 +4199,11 @@ function toggleInv(){
     for(const k in keys) keys[k] = false;
     if(document.pointerLockElement) document.exitPointerLock();
     buildInvPanel();
-  } else { invHold = -1; lockPointer(); }
+  } else {
+    invHold = -1;
+    currentStation = 'pocket';
+    lockPointer();
+  }
 }
 $('invClose').addEventListener(IS_TOUCH ? 'touchstart' : 'click', e => { e.preventDefault(); if(uiOpen) toggleInv(); }, {passive:false});
 
@@ -3766,6 +4447,7 @@ function resetWorld(){
   portalSites.overworld.length = 0; portalSites.nether.length = 0;
   dragonState.alive = true; dragonState.hp = 100;
   clearEntities(); editMap.clear(); netQueue = [];
+  for(const k in worldChests) delete worldChests[k];
 }
 function resetPlayer(){
   player.health = player.maxHealth; player.hunger = player.maxHunger; player.air = 10; player.alive = true; player.invuln = 2;
@@ -3775,6 +4457,97 @@ function resetPlayer(){
   addItem(ITEM.APPLE, 3);
   lastHP = -1; updateHudUI(); updateHotbarUI(); refreshHand();
 }
+let currentWorldId = 'world_' + Date.now();
+let currentWorldName = 'My World';
+window.currentWorldName = currentWorldName;
+window.currentWorldId = currentWorldId;
+
+function getCurrentWorldData(){
+  return {
+    id: currentWorldId,
+    name: window.currentWorldName || 'My World',
+    seed: WORLD_SEED,
+    mode: (window.MCModes ? window.MCModes.getMode() : 'survival'),
+    dim: currentDim,
+    dayTime: dayTime,
+    pos: { x: +player.pos.x.toFixed(2), y: +player.pos.y.toFixed(2), z: +player.pos.z.toFixed(2) },
+    health: player.health,
+    hunger: player.hunger,
+    inventory: inventory.map(s => s ? { id: s.id, count: s.count } : null),
+    armor: { ...armor },
+    chests: { ...worldChests },
+    edits: Array.from(editMap.values()),
+    dragon: { alive: dragonState.alive, hp: dragonState.hp },
+    savedAt: new Date().toISOString()
+  };
+}
+window.getCurrentWorldData = getCurrentWorldData;
+
+async function loadSavedWorld(wData, thenHost){
+  if(!wData) return;
+  closeNet();
+  $('menu').style.display = 'none';
+  currentWorldId = wData.id || ('world_' + Date.now());
+  currentWorldName = wData.name || 'Saved World';
+  window.currentWorldId = currentWorldId;
+  window.currentWorldName = currentWorldName;
+
+  setSeed(wData.seed || 1337);
+  resetWorld();
+  resetPlayer();
+
+  if(wData.chests){
+    for(const k in worldChests) delete worldChests[k];
+    Object.assign(worldChests, wData.chests);
+  }
+
+  if(wData.mode && window.MCModes){
+    window.MCModes.setMode(wData.mode, true, true);
+  }
+
+  // Apply block changes
+  if(wData.edits && Array.isArray(wData.edits)){
+    netApply = true;
+    for(const e of wData.edits){
+      withDim(DIM_IDS[e[0]], () => setBlock(e[1], e[2], e[3], e[4]));
+    }
+    netApply = false;
+  }
+
+  if(wData.inventory && Array.isArray(wData.inventory)){
+    for(let i=0; i<Math.min(inventory.length, wData.inventory.length); i++){
+      inventory[i] = wData.inventory[i] ? { id: wData.inventory[i].id, count: wData.inventory[i].count } : null;
+    }
+  }
+
+  if(wData.armor) Object.assign(armor, wData.armor);
+  if(wData.health !== undefined) player.health = wData.health;
+  if(wData.hunger !== undefined) player.hunger = wData.hunger;
+  if(wData.dayTime !== undefined) dayTime = wData.dayTime;
+  if(wData.dragon) Object.assign(dragonState, wData.dragon);
+
+  loadingBusy = true; showLoading(true, 'Loading "' + currentWorldName + '"...');
+  await sleep();
+
+  if(wData.pos){
+    player.pos.set(wData.pos.x, wData.pos.y, wData.pos.z);
+    spawnPos = player.pos.clone();
+  } else {
+    findSpawn(); spawnPos = player.pos.clone();
+  }
+  player.peak = player.pos.y;
+
+  await loadAround();
+  loadingBusy = false; showLoading(false);
+  startPlaying();
+  onInvChanged();
+  updateHudUI();
+  toast('Loaded "' + currentWorldName + '"! (Mode: ' + (wData.mode || 'survival').toUpperCase() + ')', 3500);
+
+  if(thenHost) startHost();
+}
+window.loadSavedWorld = loadSavedWorld;
+
 function startPlaying(){
   menuHidden = true; document.body.classList.remove('inmenu');
   for(const k in keys) keys[k] = false; joy.x = 0; joy.y = 0;
@@ -3782,17 +4555,725 @@ function startPlaying(){
   lockPointer();
   toast(IS_TOUCH ? 'Move with left joystick, right side to look!' : 'WASD to move! Click anywhere on screen to lock mouse look.', 4000);
 }
+/* ============================ BILAL'S GRAND ROYAL PALACE & FORTRESS (3 FLOORS) ============================ */
+function buildBilalRoyalPalace(ox, oy, oz){
+  ox = ox || 0; oy = oy || 18; oz = oz || 0;
+
+  // 1. Excavate and level the 3-floor palace area
+  for(let x = ox - 26; x <= ox + 26; x++){
+    for(let z = oz - 32; z <= oz + 30; z++){
+      // Clear air above floor up to y = oy + 38
+      for(let y = oy + 1; y <= oy + 38; y++){
+        setBlock(x, y, z, BLOCK.AIR);
+        netEdit(x, y, z, BLOCK.AIR);
+      }
+      // Solid foundation below
+      for(let y = Math.max(1, oy - 6); y < oy; y++){
+        const b = getBlock(x, y, z);
+        if(b === 0 || b === BLOCK.WATER || b === BLOCK.LAVA || isPlant(b)){
+          setBlock(x, y, z, BLOCK.STONE);
+          netEdit(x, y, z, BLOCK.STONE);
+        }
+      }
+      // Ground level floor (y = oy)
+      const isInterior = Math.abs(x - ox) <= 20 && z >= oz - 18 && z <= oz + 26;
+      let floorBlock = BLOCK.STONE;
+      if(isInterior){
+        floorBlock = ((x + z) % 2 === 0) ? BLOCK.NETHERQUARTZ : BLOCK.BASALT;
+      } else {
+        floorBlock = ((x + z) % 4 === 0) ? BLOCK.NETHERQUARTZ : BLOCK.STONE;
+      }
+      setBlock(x, oy, z, floorBlock);
+      netEdit(x, oy, z, floorBlock);
+    }
+  }
+
+  // 2. Courtyard Reflecting Pools & Fountains (Front of palace)
+  // Left Pool
+  for(let x = ox - 18; x <= ox - 8; x++){
+    for(let z = oz - 30; z <= oz - 22; z++){
+      const isBorder = (x === ox - 18 || x === ox - 8 || z === oz - 30 || z === oz - 22);
+      if(isBorder){
+        setBlock(x, oy + 1, z, BLOCK.NETHERQUARTZ); netEdit(x, oy + 1, z, BLOCK.NETHERQUARTZ);
+      } else {
+        setBlock(x, oy - 1, z, BLOCK.GLOWSTONE); netEdit(x, oy - 1, z, BLOCK.GLOWSTONE);
+        setBlock(x, oy, z, BLOCK.WATER); netEdit(x, oy, z, BLOCK.WATER);
+      }
+    }
+  }
+  setBlock(ox - 13, oy + 1, oz - 26, BLOCK.NETHERQUARTZ); netEdit(ox - 13, oy + 1, oz - 26, BLOCK.NETHERQUARTZ);
+  setBlock(ox - 13, oy + 2, oz - 26, BLOCK.GLOWSTONE); netEdit(ox - 13, oy + 2, oz - 26, BLOCK.GLOWSTONE);
+  setBlock(ox - 13, oy + 3, oz - 26, BLOCK.WATER); netEdit(ox - 13, oy + 3, oz - 26, BLOCK.WATER);
+
+  // Right Pool
+  for(let x = ox + 8; x <= ox + 18; x++){
+    for(let z = oz - 30; z <= oz - 22; z++){
+      const isBorder = (x === ox + 8 || x === ox + 18 || z === oz - 30 || z === oz - 22);
+      if(isBorder){
+        setBlock(x, oy + 1, z, BLOCK.NETHERQUARTZ); netEdit(x, oy + 1, z, BLOCK.NETHERQUARTZ);
+      } else {
+        setBlock(x, oy - 1, z, BLOCK.GLOWSTONE); netEdit(x, oy - 1, z, BLOCK.GLOWSTONE);
+        setBlock(x, oy, z, BLOCK.WATER); netEdit(x, oy, z, BLOCK.WATER);
+      }
+    }
+  }
+  setBlock(ox + 13, oy + 1, oz - 26, BLOCK.NETHERQUARTZ); netEdit(ox + 13, oy + 1, oz - 26, BLOCK.NETHERQUARTZ);
+  setBlock(ox + 13, oy + 2, oz - 26, BLOCK.GLOWSTONE); netEdit(ox + 13, oy + 2, oz - 26, BLOCK.GLOWSTONE);
+  setBlock(ox + 13, oy + 3, oz - 26, BLOCK.WATER); netEdit(ox + 13, oy + 3, oz - 26, BLOCK.WATER);
+
+  // 3. Royal Gardens (flowerbeds and hedges flanking path)
+  for(let z = oz - 31; z <= oz - 20; z++){
+    setBlock(ox - 5, oy + 1, z, BLOCK.LEAVES); netEdit(ox - 5, oy + 1, z, BLOCK.LEAVES);
+    setBlock(ox - 6, oy + 1, z, (z % 2 === 0 ? BLOCK.FLOWER_R : BLOCK.FLOWER_Y)); netEdit(ox - 6, oy + 1, z, (z % 2 === 0 ? BLOCK.FLOWER_R : BLOCK.FLOWER_Y));
+    setBlock(ox + 5, oy + 1, z, BLOCK.LEAVES); netEdit(ox + 5, oy + 1, z, BLOCK.LEAVES);
+    setBlock(ox + 6, oy + 1, z, (z % 2 === 0 ? BLOCK.FLOWER_Y : BLOCK.FLOWER_R)); netEdit(ox + 6, oy + 1, z, (z % 2 === 0 ? BLOCK.FLOWER_Y : BLOCK.FLOWER_R));
+  }
+
+  // 4. FLOOR 1: Outer Castle Walls (Height 8 blocks, y: oy+1 to oy+8)
+  for(let y = oy + 1; y <= oy + 8; y++){
+    for(let x = ox - 20; x <= ox + 20; x++){
+      const isArch = Math.abs(x - ox) <= 3 && y <= oy + 6;
+      if(!isArch){
+        const b = (y === oy + 1 || y === oy + 8) ? BLOCK.NETHERBRICK : (y === oy + 5 ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+        setBlock(x, y, oz - 18, b); netEdit(x, y, oz - 18, b);
+      }
+      const bb = (y === oy + 1 || y === oy + 8) ? BLOCK.NETHERBRICK : (y === oy + 5 ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      setBlock(x, y, oz + 26, bb); netEdit(x, y, oz + 26, bb);
+    }
+    for(let z = oz - 18; z <= oz + 26; z++){
+      const b = (y === oy + 1 || y === oy + 8) ? BLOCK.NETHERBRICK : (y === oy + 5 ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      setBlock(ox - 20, y, z, b); netEdit(ox - 20, y, z, b);
+      setBlock(ox + 20, y, z, b); netEdit(ox + 20, y, z, b);
+    }
+  }
+
+  // 5. Four Giant Corner Fortress Bastions (Height 26 blocks, y: oy+1 to oy+26)
+  const towerCorners = [
+    [ox - 23, oz - 22],
+    [ox + 18, oz - 22],
+    [ox - 23, oz + 21],
+    [ox + 18, oz + 21]
+  ];
+  for(const tc of towerCorners){
+    const tx = tc[0], tz = tc[1];
+    for(let y = oy + 1; y <= oy + 26; y++){
+      for(let dx = 0; dx <= 5; dx++){
+        for(let dz = 0; dz <= 5; dz++){
+          const isEdge = (dx === 0 || dx === 5 || dz === 0 || dz === 5);
+          if(isEdge){
+            const tb = (y % 6 === 0) ? BLOCK.NETHERGOLD : (y <= oy + 2 ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ);
+            setBlock(tx + dx, y, tz + dz, tb); netEdit(tx + dx, y, tz + dz, tb);
+          } else if(y === oy + 9 || y === oy + 18 || y === oy + 25){
+            setBlock(tx + dx, y, tz + dz, BLOCK.STONE); netEdit(tx + dx, y, tz + dz, BLOCK.STONE);
+          }
+        }
+      }
+    }
+    // Battlements & Campfires atop the bastions
+    for(let dx = 0; dx <= 5; dx++){
+      for(let dz = 0; dz <= 5; dz++){
+        const isCorner = (dx === 0 || dx === 5) && (dz === 0 || dz === 5);
+        const isWall = (dx === 0 || dx === 5 || dz === 0 || dz === 5);
+        if(isCorner){
+          setBlock(tx + dx, oy + 26, tz + dz, BLOCK.NETHERGOLD); netEdit(tx + dx, oy + 26, tz + dz, BLOCK.NETHERGOLD);
+          setBlock(tx + dx, oy + 27, tz + dz, BLOCK.CAMPFIRE); netEdit(tx + dx, oy + 27, tz + dz, BLOCK.CAMPFIRE);
+        } else if(isWall && (dx % 2 === 1 || dz % 2 === 1)){
+          setBlock(tx + dx, oy + 26, tz + dz, BLOCK.NETHERQUARTZ); netEdit(tx + dx, oy + 26, tz + dz, BLOCK.NETHERQUARTZ);
+        }
+      }
+    }
+  }
+
+  // 6. Colonnade Pillars & Vaulted Ceiling in Great Hall
+  for(let z = oz - 14; z <= oz + 16; z += 6){
+    for(let y = oy + 1; y <= oy + 8; y++){
+      setBlock(ox - 8, y, z, BLOCK.NETHERQUARTZ); netEdit(ox - 8, y, z, BLOCK.NETHERQUARTZ);
+      setBlock(ox + 8, y, z, BLOCK.NETHERQUARTZ); netEdit(ox + 8, y, z, BLOCK.NETHERQUARTZ);
+    }
+    setBlock(ox - 8, oy + 8, z, BLOCK.NETHERGOLD); netEdit(ox - 8, oy + 8, z, BLOCK.NETHERGOLD);
+    setBlock(ox + 8, oy + 8, z, BLOCK.NETHERGOLD); netEdit(ox + 8, oy + 8, z, BLOCK.NETHERGOLD);
+  }
+
+  // Grand Hanging Chandeliers
+  for(let cz = oz - 8; cz <= oz + 12; cz += 8){
+    setBlock(ox, oy + 7, cz, BLOCK.STONE); netEdit(ox, oy + 7, cz, BLOCK.STONE);
+    setBlock(ox, oy + 6, cz, BLOCK.GLOWSTONE); netEdit(ox, oy + 6, cz, BLOCK.GLOWSTONE);
+    setBlock(ox - 1, oy + 6, cz, BLOCK.NETHERGOLD); netEdit(ox - 1, oy + 6, cz, BLOCK.NETHERGOLD);
+    setBlock(ox + 1, oy + 6, cz, BLOCK.NETHERGOLD); netEdit(ox + 1, oy + 6, cz, BLOCK.NETHERGOLD);
+    setBlock(ox, oy + 6, cz - 1, BLOCK.NETHERGOLD); netEdit(ox, oy + 6, cz - 1, BLOCK.NETHERGOLD);
+    setBlock(ox, oy + 6, cz + 1, BLOCK.NETHERGOLD); netEdit(ox, oy + 6, cz + 1, BLOCK.NETHERGOLD);
+  }
+
+  // 7. Imperial Red Carpet Runner (Ground Floor)
+  for(let z = oz - 30; z <= oz + 18; z++){
+    for(let rx = ox - 1; rx <= ox + 1; rx++){
+      setBlock(rx, oy, z, BLOCK.REDSTONE_BLOCK); netEdit(rx, oy, z, BLOCK.REDSTONE_BLOCK);
+    }
+  }
+
+  // 8. Elevated Throne Dais & Imperial Throne of Bilal
+  for(let x = ox - 6; x <= ox + 6; x++){
+    for(let z = oz + 18; z <= oz + 24; z++){
+      setBlock(x, oy + 1, z, BLOCK.NETHERQUARTZ); netEdit(x, oy + 1, z, BLOCK.NETHERQUARTZ);
+    }
+  }
+  for(let x = ox - 4; x <= ox + 4; x++){
+    for(let z = oz + 19; z <= oz + 24; z++){
+      setBlock(x, oy + 2, z, BLOCK.NETHERGOLD); netEdit(x, oy + 2, z, BLOCK.NETHERGOLD);
+    }
+  }
+  for(let x = ox - 2; x <= ox + 2; x++){
+    for(let z = oz + 20; z <= oz + 24; z++){
+      setBlock(x, oy + 3, z, BLOCK.REDSTONE_BLOCK); netEdit(x, oy + 3, z, BLOCK.REDSTONE_BLOCK);
+    }
+  }
+  setBlock(ox, oy + 4, oz + 22, BLOCK.NETHERGOLD); netEdit(ox, oy + 4, oz + 22, BLOCK.NETHERGOLD);
+  setBlock(ox - 1, oy + 4, oz + 22, BLOCK.NETHERGOLD); netEdit(ox - 1, oy + 4, oz + 22, BLOCK.NETHERGOLD);
+  setBlock(ox + 1, oy + 4, oz + 22, BLOCK.NETHERGOLD); netEdit(ox + 1, oy + 4, oz + 22, BLOCK.NETHERGOLD);
+  for(let by = oy + 4; by <= oy + 7; by++){
+    setBlock(ox, by, oz + 23, by === oy + 7 ? BLOCK.GLOWSTONE : BLOCK.NETHERGOLD); netEdit(ox, by, oz + 23, by === oy + 7 ? BLOCK.GLOWSTONE : BLOCK.NETHERGOLD);
+    setBlock(ox - 1, by, oz + 23, BLOCK.NETHERGOLD); netEdit(ox - 1, by, oz + 23, BLOCK.NETHERGOLD);
+    setBlock(ox + 1, by, oz + 23, BLOCK.NETHERGOLD); netEdit(ox + 1, by, oz + 23, BLOCK.NETHERGOLD);
+  }
+  // Flanking Soulfire Braziers
+  setBlock(ox - 3, oy + 3, oz + 21, BLOCK.BASALT); netEdit(ox - 3, oy + 3, oz + 21, BLOCK.BASALT);
+  setBlock(ox - 3, oy + 4, oz + 21, BLOCK.SOUL_CAMPFIRE); netEdit(ox - 3, oy + 4, oz + 21, BLOCK.SOUL_CAMPFIRE);
+  setBlock(ox + 3, oy + 3, oz + 21, BLOCK.BASALT); netEdit(ox + 3, oy + 3, oz + 21, BLOCK.BASALT);
+  setBlock(ox + 3, oy + 4, oz + 21, BLOCK.SOUL_CAMPFIRE); netEdit(ox + 3, oy + 4, oz + 21, BLOCK.SOUL_CAMPFIRE);
+
+  // 9. DOUBLE SYMMETRICAL GRAND STAIRCASES (Ground Floor to Floor 2, "stares")
+  // West Grand Staircase: rises from y=oy+1 to y=oy+9
+  for(let step = 0; step < 8; step++){
+    const sy = oy + 1 + step;
+    const sz = oz - 2 + step * 2;
+    for(let sx = ox - 16; sx <= ox - 13; sx++){
+      setBlock(sx, sy, sz, BLOCK.NETHERQUARTZ); netEdit(sx, sy, sz, BLOCK.NETHERQUARTZ);
+      setBlock(sx, sy, sz + 1, BLOCK.NETHERQUARTZ); netEdit(sx, sy, sz + 1, BLOCK.NETHERQUARTZ);
+      // Pillars beneath steps
+      for(let by = oy + 1; by < sy; by++){
+        setBlock(sx, by, sz, BLOCK.STONE); netEdit(sx, by, sz, BLOCK.STONE);
+        setBlock(sx, by, sz + 1, BLOCK.STONE); netEdit(sx, by, sz + 1, BLOCK.STONE);
+      }
+    }
+    // Stair railing
+    setBlock(ox - 17, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox - 17, sy + 1, sz, BLOCK.NETHERGOLD);
+    setBlock(ox - 12, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox - 12, sy + 1, sz, BLOCK.NETHERGOLD);
+  }
+
+  // East Grand Staircase: rises from y=oy+1 to y=oy+9
+  for(let step = 0; step < 8; step++){
+    const sy = oy + 1 + step;
+    const sz = oz - 2 + step * 2;
+    for(let sx = ox + 13; sx <= ox + 16; sx++){
+      setBlock(sx, sy, sz, BLOCK.NETHERQUARTZ); netEdit(sx, sy, sz, BLOCK.NETHERQUARTZ);
+      setBlock(sx, sy, sz + 1, BLOCK.NETHERQUARTZ); netEdit(sx, sy, sz + 1, BLOCK.NETHERQUARTZ);
+      for(let by = oy + 1; by < sy; by++){
+        setBlock(sx, by, sz, BLOCK.STONE); netEdit(sx, by, sz, BLOCK.STONE);
+        setBlock(sx, by, sz + 1, BLOCK.STONE); netEdit(sx, by, sz + 1, BLOCK.STONE);
+      }
+    }
+    // Stair railing
+    setBlock(ox + 12, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox + 12, sy + 1, sz, BLOCK.NETHERGOLD);
+    setBlock(ox + 17, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox + 17, sy + 1, sz, BLOCK.NETHERGOLD);
+  }
+
+  // 10. FLOOR 2: Floor Slab at y = oy + 9 with Great Hall Mezzanine Overlook
+  for(let x = ox - 20; x <= ox + 20; x++){
+    for(let z = oz - 18; z <= oz + 26; z++){
+      const isCentralAtrium = (Math.abs(x - ox) <= 6 && z >= oz - 8 && z <= oz + 12);
+      if(!isCentralAtrium){
+        const isEdge = (Math.abs(x - ox) === 7 && z >= oz - 8 && z <= oz + 12) || (Math.abs(x - ox) <= 6 && (z === oz - 9 || z === oz + 13));
+        setBlock(x, oy + 9, z, BLOCK.NETHERQUARTZ); netEdit(x, oy + 9, z, BLOCK.NETHERQUARTZ);
+        if(isEdge){
+          setBlock(x, oy + 10, z, BLOCK.NETHERGOLD); netEdit(x, oy + 10, z, BLOCK.NETHERGOLD); // Railing
+        }
+      }
+    }
+  }
+
+  // Floor 2 Outer Walls (Height 8 blocks, y: oy+10 to oy+17)
+  for(let y = oy + 10; y <= oy + 17; y++){
+    for(let x = ox - 20; x <= ox + 20; x++){
+      const isBridgeDoor = (Math.abs(x - ox) === 14 && y <= oy + 13);
+      if(!isBridgeDoor){
+        setBlock(x, y, oz - 18, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+        netEdit(x, y, oz - 18, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      }
+      setBlock(x, y, oz + 26, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      netEdit(x, y, oz + 26, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+    }
+    for(let z = oz - 18; z <= oz + 26; z++){
+      setBlock(ox - 20, y, z, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      netEdit(ox - 20, y, z, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      setBlock(ox + 20, y, z, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      netEdit(ox + 20, y, z, (y % 4 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+    }
+  }
+
+  // 11. COLOSSAL HIGH ARCH BRIDGE (IMG_2579_4767eebb.jpeg)
+  // Grand exterior bridge spanning from West Tower to East Tower at z = oz - 22..oz - 18
+  for(let x = ox - 18; x <= ox + 18; x++){
+    for(let z = oz - 22; z <= oz - 18; z++){
+      const distFromCenter = Math.abs(x - ox);
+      const archH = Math.max(0, Math.floor(7 - (distFromCenter * 7 / 18)));
+      for(let y = oy + 1; y <= oy + 9; y++){
+        if(y > oy + 1 + archH){
+          setBlock(x, y, z, BLOCK.STONE); netEdit(x, y, z, BLOCK.STONE);
+        }
+      }
+      // Bridge Walkway at y = oy + 10
+      setBlock(x, oy + 10, z, (Math.abs(x - ox) % 3 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+      netEdit(x, oy + 10, z, (Math.abs(x - ox) % 3 === 0) ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+
+      // Crenellations & Torches on bridge parapet
+      if(z === oz - 22){
+        const isPillar = (Math.abs(x - ox) % 3 === 0);
+        setBlock(x, oy + 11, z, isPillar ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+        netEdit(x, oy + 11, z, isPillar ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ);
+        if(isPillar){
+          setBlock(x, oy + 12, z, BLOCK.TORCH); netEdit(x, oy + 12, z, BLOCK.TORCH);
+        }
+      }
+    }
+  }
+
+  // 12. EAST WING FLOOR 2: The Royal Art Gallery ("art")
+  // Pedestals, glowing exhibits, and framed museum displays
+  for(let bx = ox + 10; bx <= ox + 18; bx += 3){
+    setBlock(bx, oy + 10, oz + 4, BLOCK.NETHERQUARTZ); netEdit(bx, oy + 10, oz + 4, BLOCK.NETHERQUARTZ);
+    setBlock(bx, oy + 11, oz + 4, BLOCK.GLOWSTONE); netEdit(bx, oy + 11, oz + 4, BLOCK.GLOWSTONE);
+    setBlock(bx, oy + 10, oz + 16, BLOCK.NETHERQUARTZ); netEdit(bx, oy + 10, oz + 16, BLOCK.NETHERQUARTZ);
+    setBlock(bx, oy + 11, oz + 16, BLOCK.GLOWSTONE); netEdit(bx, oy + 11, oz + 16, BLOCK.GLOWSTONE);
+  }
+  // Decorative wall mosaics
+  for(let y = oy + 11; y <= oy + 15; y++){
+    for(let z = oz - 12; z <= oz + 20; z += 4){
+      setBlock(ox + 19, y, z, BLOCK.NETHERGOLD); netEdit(ox + 19, y, z, BLOCK.NETHERGOLD);
+      setBlock(ox + 19, y, z + 1, BLOCK.REDSTONE_BLOCK); netEdit(ox + 19, y, z + 1, BLOCK.REDSTONE_BLOCK);
+    }
+  }
+
+  // 13. WEST WING FLOOR 2: The Imperial Grand Library & Enchanting Sanctuary
+  for(let bx = ox - 18; bx <= ox - 10; bx += 4){
+    for(let bz = oz - 10; bz <= oz + 18; bz++){
+      if(bz % 4 !== 0){
+        for(let by = oy + 10; by <= oy + 13; by++){
+          setBlock(bx, by, bz, (by % 2 === 0 ? BLOCK.BOOKSHELF : BLOCK.CHISELED_BOOKSHELF));
+          netEdit(bx, by, bz, (by % 2 === 0 ? BLOCK.BOOKSHELF : BLOCK.CHISELED_BOOKSHELF));
+        }
+      }
+    }
+  }
+  setBlock(ox - 14, oy + 10, oz + 4, BLOCK.ENCHANTING_TABLE); netEdit(ox - 14, oy + 10, oz + 4, BLOCK.ENCHANTING_TABLE);
+  setBlock(ox - 14, oy + 10, oz + 6, BLOCK.ANVIL); netEdit(ox - 14, oy + 10, oz + 6, BLOCK.ANVIL);
+  setBlock(ox - 14, oy + 10, oz + 2, BLOCK.CRAFTING_TABLE); netEdit(ox - 14, oy + 10, oz + 2, BLOCK.CRAFTING_TABLE);
+
+  // 14. GRAND CENTRAL STAIRCASE (Floor 2 to Floor 3, y: oy+9 to oy+18)
+  for(let step = 0; step < 9; step++){
+    const sy = oy + 10 + step;
+    const sz = oz + 14 + step;
+    for(let sx = ox - 2; sx <= ox + 2; sx++){
+      setBlock(sx, sy, sz, BLOCK.NETHERQUARTZ); netEdit(sx, sy, sz, BLOCK.NETHERQUARTZ);
+      for(let by = oy + 9; by < sy; by++){
+        setBlock(sx, by, sz, BLOCK.STONE); netEdit(sx, by, sz, BLOCK.STONE);
+      }
+    }
+    setBlock(ox - 3, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox - 3, sy + 1, sz, BLOCK.NETHERGOLD);
+    setBlock(ox + 3, sy + 1, sz, BLOCK.NETHERGOLD); netEdit(ox + 3, sy + 1, sz, BLOCK.NETHERGOLD);
+  }
+
+  // 15. FLOOR 3: Floor Slab at y = oy + 18 (Penthouse Suite)
+  for(let x = ox - 20; x <= ox + 20; x++){
+    for(let z = oz - 18; z <= oz + 26; z++){
+      setBlock(x, oy + 18, z, ((x + z) % 2 === 0) ? BLOCK.NETHERQUARTZ : BLOCK.BASALT);
+      netEdit(x, oy + 18, z, ((x + z) % 2 === 0) ? BLOCK.NETHERQUARTZ : BLOCK.BASALT);
+    }
+  }
+
+  // Floor 3 Outer Walls (Height 8 blocks, y: oy+19 to oy+26)
+  for(let y = oy + 19; y <= oy + 26; y++){
+    for(let x = ox - 20; x <= ox + 20; x++){
+      setBlock(x, y, oz - 18, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ); netEdit(x, y, oz - 18, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ);
+      setBlock(x, y, oz + 26, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ); netEdit(x, y, oz + 26, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ);
+    }
+    for(let z = oz - 18; z <= oz + 26; z++){
+      setBlock(ox - 20, y, z, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ); netEdit(ox - 20, y, z, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ);
+      setBlock(ox + 20, y, z, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ); netEdit(ox + 20, y, z, (y === oy + 26) ? BLOCK.NETHERBRICK : BLOCK.NETHERQUARTZ);
+    }
+  }
+
+  // 16. THE EMPEROR'S MASTER BEDROOM SUITE (Floor 3, "master bedrooom and alll")
+  // Partition wall separating bedroom
+  for(let y = oy + 19; y <= oy + 25; y++){
+    for(let x = ox - 8; x <= ox + 8; x++){
+      if(Math.abs(x - ox) > 2){
+        setBlock(x, y, oz + 12, BLOCK.NETHERQUARTZ); netEdit(x, y, oz + 12, BLOCK.NETHERQUARTZ);
+      }
+    }
+  }
+
+  // KING-SIZED ROYAL CANOPY BED
+  for(let bx = ox - 2; bx <= ox + 2; bx++){
+    for(let bz = oz + 19; bz <= oz + 22; bz++){
+      setBlock(bx, oy + 19, bz, BLOCK.REDSTONE_BLOCK); netEdit(bx, oy + 19, bz, BLOCK.REDSTONE_BLOCK);
+    }
+  }
+  setBlock(ox - 1, oy + 19, oz + 21, BLOCK.BED); netEdit(ox - 1, oy + 19, oz + 21, BLOCK.BED);
+  setBlock(ox + 1, oy + 19, oz + 21, BLOCK.BED); netEdit(ox + 1, oy + 19, oz + 21, BLOCK.BED);
+
+  // 4 Gold Canopy Pillars with Glowstone Overhead
+  const canopyCorners = [
+    [ox - 2, oz + 19],
+    [ox + 2, oz + 19],
+    [ox - 2, oz + 22],
+    [ox + 2, oz + 22]
+  ];
+  for(const cc of canopyCorners){
+    for(let cy = oy + 19; cy <= oy + 22; cy++){
+      setBlock(cc[0], cy, cc[1], BLOCK.NETHERGOLD); netEdit(cc[0], cy, cc[1], BLOCK.NETHERGOLD);
+    }
+  }
+  for(let bx = ox - 2; bx <= ox + 2; bx++){
+    for(let bz = oz + 19; bz <= oz + 22; bz++){
+      const isEdge = (bx === ox - 2 || bx === ox + 2 || bz === oz + 19 || bz === oz + 22);
+      setBlock(bx, oy + 23, bz, isEdge ? BLOCK.NETHERGOLD : BLOCK.GLOWSTONE);
+      netEdit(bx, oy + 23, bz, isEdge ? BLOCK.NETHERGOLD : BLOCK.GLOWSTONE);
+    }
+  }
+
+  // Cozy Roaring Stone Fireplace & Chimney
+  for(let y = oy + 19; y <= oy + 23; y++){
+    setBlock(ox - 6, y, oz + 22, BLOCK.STONE); netEdit(ox - 6, y, oz + 22, BLOCK.STONE);
+    setBlock(ox - 6, y, oz + 23, BLOCK.STONE); netEdit(ox - 6, y, oz + 23, BLOCK.STONE);
+    setBlock(ox - 6, y, oz + 24, BLOCK.STONE); netEdit(ox - 6, y, oz + 24, BLOCK.STONE);
+  }
+  setBlock(ox - 6, oy + 19, oz + 23, BLOCK.NETHERRACK); netEdit(ox - 6, oy + 19, oz + 23, BLOCK.NETHERRACK);
+  setBlock(ox - 6, oy + 20, oz + 23, BLOCK.CAMPFIRE); netEdit(ox - 6, oy + 20, oz + 23, BLOCK.CAMPFIRE);
+  for(let y = oy + 24; y <= oy + 32; y++){
+    setBlock(ox - 6, y, oz + 23, BLOCK.NETHERBRICK); netEdit(ox - 6, y, oz + 23, BLOCK.NETHERBRICK);
+  }
+
+  // Panoramic Master Balcony overlooking mountains
+  for(let bx = ox - 6; bx <= ox + 6; bx++){
+    for(let bz = oz + 27; bz <= oz + 30; bz++){
+      setBlock(bx, oy + 18, bz, BLOCK.NETHERQUARTZ); netEdit(bx, oy + 18, bz, BLOCK.NETHERQUARTZ);
+      const isBalconyEdge = (bx === ox - 6 || bx === ox + 6 || bz === oz + 30);
+      if(isBalconyEdge){
+        setBlock(bx, oy + 19, bz, BLOCK.NETHERGOLD); netEdit(bx, oy + 19, bz, BLOCK.NETHERGOLD);
+      }
+    }
+  }
+
+  // 17. PRIVATE EMPEROR'S SPA / BATH (West Wing Floor 3)
+  for(let bx = ox - 18; bx <= ox - 10; bx++){
+    for(let bz = oz + 6; bz <= oz + 14; bz++){
+      const isPoolBorder = (bx === ox - 18 || bx === ox - 10 || bz === oz + 6 || bz === oz + 14);
+      if(isPoolBorder){
+        setBlock(bx, oy + 19, bz, BLOCK.NETHERQUARTZ); netEdit(bx, oy + 19, bz, BLOCK.NETHERQUARTZ);
+      } else {
+        setBlock(bx, oy + 18, bz, BLOCK.GLOWSTONE); netEdit(bx, oy + 18, bz, BLOCK.GLOWSTONE);
+        setBlock(bx, oy + 19, bz, BLOCK.WATER); netEdit(bx, oy + 19, bz, BLOCK.WATER);
+      }
+    }
+  }
+
+  // 18. WALK-IN ROYAL TREASURY VAULT (East Wing Floor 3)
+  for(let bx = ox + 10; bx <= ox + 18; bx++){
+    for(let bz = oz + 6; bz <= oz + 14; bz++){
+      const isWall = (bx === ox + 10 || bx === ox + 18 || bz === oz + 6 || bz === oz + 14);
+      if(isWall && !(bx === ox + 10 && (bz === oz + 10 || bz === oz + 11))){
+        for(let y = oy + 19; y <= oy + 25; y++){
+          setBlock(bx, y, bz, BLOCK.OBSIDIAN); netEdit(bx, y, bz, BLOCK.OBSIDIAN);
+        }
+      }
+    }
+  }
+  // Gold & Diamond pillars inside vault
+  setBlock(ox + 12, oy + 19, oz + 8, BLOCK.NETHERGOLD); netEdit(ox + 12, oy + 19, oz + 8, BLOCK.NETHERGOLD);
+  setBlock(ox + 12, oy + 20, oz + 8, BLOCK.NETHERGOLD); netEdit(ox + 12, oy + 20, oz + 8, BLOCK.NETHERGOLD);
+  setBlock(ox + 16, oy + 19, oz + 8, BLOCK.DIAMOND_ORE); netEdit(ox + 16, oy + 19, oz + 8, BLOCK.DIAMOND_ORE);
+  setBlock(ox + 16, oy + 20, oz + 8, BLOCK.DIAMOND_ORE); netEdit(ox + 16, oy + 20, oz + 8, BLOCK.DIAMOND_ORE);
+
+  // Stock the Vault Chests with Royal Netherite & Treasures
+  setBlock(ox + 14, oy + 19, oz + 8, BLOCK.CHEST); netEdit(ox + 14, oy + 19, oz + 8, BLOCK.CHEST);
+  setBlock(ox + 15, oy + 19, oz + 8, BLOCK.CHEST); netEdit(ox + 15, oy + 19, oz + 8, BLOCK.CHEST);
+  setBlock(ox + 13, oy + 19, oz + 12, BLOCK.CHEST); netEdit(ox + 13, oy + 19, oz + 12, BLOCK.CHEST);
+  setBlock(ox + 14, oy + 19, oz + 12, BLOCK.CHEST); netEdit(ox + 14, oy + 19, oz + 12, BLOCK.CHEST);
+  setBlock(ox + 15, oy + 19, oz + 12, BLOCK.ANVIL); netEdit(ox + 15, oy + 19, oz + 12, BLOCK.ANVIL);
+
+  worldChests[`${ox + 14},${oy + 19},${oz + 8}`] = [
+    { id: ITEM.HELMET_NETHERITE, count: 1 },
+    { id: ITEM.CHEST_NETHERITE, count: 1 },
+    { id: ITEM.LEGS_NETHERITE, count: 1 },
+    { id: ITEM.BOOTS_NETHERITE, count: 1 },
+    { id: ITEM.SWORD_NETHERITE, count: 1 },
+    { id: ITEM.PICK_NETHERITE, count: 1 },
+    { id: ITEM.AXE_NETHERITE, count: 1 },
+    { id: ITEM.MACE, count: 1 },
+    { id: ITEM.SHIELD, count: 1 },
+    { id: ITEM.BOW, count: 1 },
+    { id: ITEM.ARROW, count: 64 },
+    { id: ITEM.ARROW, count: 64 }
+  ];
+  worldChests[`${ox + 15},${oy + 19},${oz + 8}`] = [
+    { id: ITEM.DIAMOND, count: 64 },
+    { id: ITEM.INGOT_GOLD, count: 64 },
+    { id: ITEM.EMERALD, count: 64 },
+    { id: ITEM.NETHERITE_INGOT, count: 64 },
+    { id: ITEM.INGOT_IRON, count: 64 },
+    { id: ITEM.REDSTONE, count: 64 },
+    { id: ITEM.LAPIS, count: 64 }
+  ];
+  worldChests[`${ox + 13},${oy + 19},${oz + 12}`] = [
+    { id: ITEM.COOKED_BEEF, count: 64 },
+    { id: ITEM.COOKED_PORK, count: 64 },
+    { id: ITEM.GOLDEN_CARROT, count: 64 },
+    { id: ITEM.APPLE, count: 64 },
+    { id: ITEM.MILK_BUCKET, count: 1 },
+    { id: ITEM.WATER_BUCKET, count: 1 }
+  ];
+  worldChests[`${ox + 14},${oy + 19},${oz + 12}`] = [
+    { id: BLOCK.GLOWSTONE, count: 64 },
+    { id: BLOCK.OBSIDIAN, count: 64 },
+    { id: BLOCK.TNT, count: 64 },
+    { id: BLOCK.REDSTONE_BLOCK, count: 64 },
+    { id: ITEM.EYE, count: 16 }
+  ];
+
+  // 19. ROOF, SLOPED EAVES & SOARING CENTRAL SPIRE (IMG_2579_4767eebb.jpeg)
+  // Main Roof at y = oy + 27
+  for(let x = ox - 20; x <= ox + 20; x++){
+    for(let z = oz - 18; z <= oz + 26; z++){
+      setBlock(x, oy + 27, z, BLOCK.STONE); netEdit(x, oy + 27, z, BLOCK.STONE);
+      const isRoofEdge = (x === ox - 20 || x === ox + 20 || z === oz - 18 || z === oz + 26);
+      if(isRoofEdge){
+        setBlock(x, oy + 28, z, BLOCK.NETHERBRICK); netEdit(x, oy + 28, z, BLOCK.NETHERBRICK);
+      }
+    }
+  }
+
+  // Soaring Central Spire Tower (y = oy + 27 to oy + 36, reaches y = 54!)
+  for(let y = oy + 28; y <= oy + 36; y++){
+    for(let dx = -4; dx <= 4; dx++){
+      for(let dz = -4; dz <= 4; dz++){
+        const isSpireEdge = (Math.abs(dx) === 4 || Math.abs(dz) === 4);
+        if(isSpireEdge){
+          setBlock(ox + dx, y, oz + 4 + dz, (y % 4 === 0 ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ));
+          netEdit(ox + dx, y, oz + 4 + dz, (y % 4 === 0 ? BLOCK.NETHERGOLD : BLOCK.NETHERQUARTZ));
+        } else if(y === oy + 35){
+          setBlock(ox + dx, y, oz + 4 + dz, BLOCK.STONE); netEdit(ox + dx, y, oz + 4 + dz, BLOCK.STONE);
+        }
+      }
+    }
+  }
+
+  // Active Sky Beacon crowning the Central Spire
+  setBlock(ox, oy + 36, oz + 4, BLOCK.NETHERGOLD); netEdit(ox, oy + 36, oz + 4, BLOCK.NETHERGOLD);
+  setBlock(ox, oy + 37, oz + 4, BLOCK.BEACON); netEdit(ox, oy + 37, oz + 4, BLOCK.BEACON);
+
+  // Mark all surrounding chunks dirty so everything renders smoothly
+  for(let cx = Math.floor((ox - 32)/16); cx <= Math.floor((ox + 32)/16); cx++){
+    for(let cz = Math.floor((oz - 36)/16); cz <= Math.floor((oz + 36)/16); cz++){
+      const c = getChunk(cx, cz, true);
+      if(c) c.dirty = true;
+    }
+  }
+}
+window.buildBilalRoyalPalace = buildBilalRoyalPalace;
+
+function openOwnerSignInFromRestricted(){
+  const restModal = document.getElementById('palaceRestrictedModal');
+  if(restModal) restModal.style.display = 'none';
+  if(typeof openAuthModal === 'function') openAuthModal();
+  if(typeof switchAuthTab === 'function') switchAuthTab('login');
+  const emailInput = document.getElementById('authEmailInput');
+  if(emailInput) emailInput.value = 'mongolance080@gmail.com';
+}
+window.openOwnerSignInFromRestricted = openOwnerSignInFromRestricted;
+
+function tryUseGuestPass(){
+  const input = document.getElementById('guestPassInput');
+  const guestName = (input ? input.value : '').trim();
+  if(!guestName){
+    if(window.toast) window.toast('Please enter your player name.', 2500);
+    return;
+  }
+  const sec = window.MCAuth ? window.MCAuth.getPalaceSecurity() : { gateMode: 'private', whitelist: [] };
+  const allowed = (sec.gateMode === 'open') || sec.whitelist.some(w => w.toLowerCase() === guestName.toLowerCase());
+  if(allowed){
+    const restModal = document.getElementById('palaceRestrictedModal');
+    if(restModal) restModal.style.display = 'none';
+    if(window.toast) window.toast('🎟️ Royal Pass verified! Welcome, ' + guestName + '!', 3000);
+    window.myName = guestName;
+    enterPalaceWorldDirect();
+  } else {
+    if(window.toast) window.toast('⛔ Pass not found on the Emperor\'s guest list.', 3000);
+  }
+}
+window.tryUseGuestPass = tryUseGuestPass;
+
+function openPalaceGateModal(){
+  const modal = document.getElementById('palaceGateModal');
+  if(!modal) return;
+  modal.style.display = 'flex';
+  if(document.pointerLockElement) document.exitPointerLock();
+  updatePalaceGateUI();
+}
+window.openPalaceGateModal = openPalaceGateModal;
+
+function updatePalaceGateUI(){
+  if(!window.MCAuth) return;
+  const sec = window.MCAuth.getPalaceSecurity();
+  const isPrivate = sec.gateMode !== 'open';
+  const privBtn = document.getElementById('gateModePrivateBtn');
+  const openBtn = document.getElementById('gateModeOpenBtn');
+  const statusExpl = document.getElementById('gateStatusExpl');
+  const listEl = document.getElementById('palaceGuestList');
+
+  if(privBtn){
+    privBtn.style.background = isPrivate ? '#854d0e' : '#555';
+    privBtn.style.border = isPrivate ? '2px solid #ffd700' : '2px solid #333';
+  }
+  if(openBtn){
+    openBtn.style.background = !isPrivate ? '#4a8027' : '#555';
+    openBtn.style.border = !isPrivate ? '2px solid #99ff66' : '2px solid #333';
+  }
+  if(statusExpl){
+    statusExpl.textContent = isPrivate
+      ? 'Currently: Only Emperor Muhammad Bilal and whitelisted guests can enter.'
+      : 'Currently: Palace gates are OPEN to all friends and guests in multiplayer!';
+  }
+  if(listEl){
+    if(sec.whitelist && sec.whitelist.length > 0){
+      listEl.innerHTML = sec.whitelist.map(name => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;border-bottom:1px solid #ccc">
+          <span>👑 <strong>${name}</strong></span>
+          <button class="mcbtn" style="width:auto;margin:0;padding:2px 8px;font-size:11px;background:#8a3a3a" onclick="removeGuest('${name}')">✕ Revoke</button>
+        </div>
+      `).join('');
+    } else {
+      listEl.innerHTML = '<div style="color:#777;padding:4px">(No individual guest passes issued yet)</div>';
+    }
+  }
+}
+window.updatePalaceGateUI = updatePalaceGateUI;
+
+function setPalaceGate(mode){
+  if(window.MCAuth){
+    window.MCAuth.setPalaceGateMode(mode);
+    updatePalaceGateUI();
+    if(window.toast) window.toast(mode === 'open' ? '🎟️ Palace gates opened to friends!' : '🔒 Palace gate locked (Private).', 2500);
+  }
+}
+window.setPalaceGate = setPalaceGate;
+
+function addGuestFromInput(){
+  const input = document.getElementById('palaceNewGuestInput');
+  const val = (input ? input.value : '').trim();
+  if(!val){
+    if(window.toast) window.toast('Please enter a player username.', 2000);
+    return;
+  }
+  if(window.MCAuth){
+    window.MCAuth.addPalaceGuest(val);
+    if(input) input.value = '';
+    updatePalaceGateUI();
+    if(window.toast) window.toast('🎟️ Royal Pass issued to: ' + val, 3000);
+  }
+}
+window.addGuestFromInput = addGuestFromInput;
+
+function removeGuest(name){
+  if(window.MCAuth){
+    window.MCAuth.removePalaceGuest(name);
+    updatePalaceGateUI();
+    if(window.toast) window.toast('Pass revoked for: ' + name, 2000);
+  }
+}
+window.removeGuest = removeGuest;
+
+async function enterPalaceWorldDirect(){
+  currentWorldName = "Bilal's Grand Palace";
+  window.currentWorldName = currentWorldName;
+  await createWorld('palace', false);
+}
+
+async function enterPalaceWorld(){
+  const u = window.MCAuth ? window.MCAuth.getUser() : null;
+  const access = window.MCAuth ? window.MCAuth.checkPalaceAccess(u) : { allowed: false };
+
+  if(access.allowed){
+    await enterPalaceWorldDirect();
+  } else {
+    const modal = document.getElementById('palaceRestrictedModal');
+    if(modal) modal.style.display = 'flex';
+    else if(window.toast) window.toast('⛔ Bilal\'s Grand Palace is restricted to Muhammad Bilal and invited guests.', 3500);
+  }
+}
+window.startPalaceWorld = enterPalaceWorld;
+window.enterPalaceWorld = enterPalaceWorld;
+
 async function createWorld(seedText, thenHost){
   closeNet();
   $('menu').style.display = 'none';
-  setSeed(seedFrom(seedText)); resetWorld(); resetPlayer();
-  loadingBusy = true; showLoading(true, 'Creating world...');
+  currentWorldId = 'world_' + Date.now();
+  currentWorldName = window.currentWorldName || 'My World';
+  window.currentWorldId = currentWorldId;
+  const isPalaceWorld = (String(seedText).toLowerCase() === 'palace') || (currentWorldName && currentWorldName.toLowerCase().includes('palace'));
+
+  if(isPalaceWorld){
+    const u = window.MCAuth ? window.MCAuth.getUser() : null;
+    const access = window.MCAuth ? window.MCAuth.checkPalaceAccess(u) : { allowed: false };
+    if(!access.allowed){
+      $('menu').style.display = 'flex';
+      const modal = document.getElementById('palaceRestrictedModal');
+      if(modal) modal.style.display = 'flex';
+      if(window.toast) window.toast('⛔ Only Muhammad Bilal or invited guests can enter this palace seed.', 3500);
+      return;
+    }
+  }
+
+  setSeed(isPalaceWorld ? 777777 : seedFrom(seedText));
+  resetWorld();
+  resetPlayer();
+  loadingBusy = true;
+  showLoading(true, isPalaceWorld ? 'Constructing Bilal\'s Grand Palace...' : 'Creating world...');
   await sleep();
-  findSpawn(); spawnPos = player.pos.clone(); player.peak = player.pos.y;
+
+  if(isPalaceWorld){
+    currentWorldName = "Bilal's Grand Palace";
+    window.currentWorldName = currentWorldName;
+    if(window.MCModes){
+      window.MCModes.setMode('creative', false, true);
+    }
+    buildBilalRoyalPalace(0, 18, 0);
+    player.pos.set(0.5, 19.1, -28.5);
+    player.yaw = 0; player.pitch = 0.05;
+    spawnPos = player.pos.clone(); player.peak = player.pos.y;
+    addItem(ITEM.SWORD_NETHERITE, 1);
+    addItem(ITEM.COOKED_BEEF, 64);
+    updateHotbarUI(); refreshHand();
+  } else {
+    findSpawn(); spawnPos = player.pos.clone(); player.peak = player.pos.y;
+  }
+
   await loadAround();
   for(let i=0;i<8;i++) spawnPassiveNear(6, 32);
   loadingBusy = false; showLoading(false);
   startPlaying();
+
+  if(isPalaceWorld){
+    toast('👑 Welcome to Your Grand Royal Palace, Emperor Muhammad Bilal! (Creative Mode Active: Double-tap Space or F to fly)', 6000);
+  }
+
+  const u = (window.MCAuth ? window.MCAuth.getUser() : null);
+  if(u && !u.isGuest && window.MCAuth){
+    window.MCAuth.saveWorld(getCurrentWorldData());
+    toast('✓ World created and saved to account (' + u.username + ')', 3000);
+  } else {
+    toast('Playing with temporary username. Sign up from Pause Menu to save!', 4000);
+  }
+
   if(thenHost) startHost();
 }
 function randCode(){ const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for(let i=0;i<5;i++) r += A[Math.floor(Math.random()*A.length)]; return r; }
@@ -3834,7 +5315,7 @@ function startHost(){
   try{ peer = new Peer('vsv-' + code, PEER_OPTS); }catch(e){ toast('Could not start hosting', 3000); return; }
   netRole = 'host'; roomCode = code; myId = 'vsv-' + code;
   const u = (window.MCAuth ? window.MCAuth.getUser() : null);
-  myName = (u && u.username) ? u.username : 'Host';
+  myName = window.myName || (u && u.username) || 'Host';
 
   peer.on('open', () => {
     updateRoomLabel();
@@ -3909,7 +5390,7 @@ function joinWorld(codeText){
   peer.on('open', id => {
     myId = id;
     const u = (window.MCAuth ? window.MCAuth.getUser() : null);
-    myName = (u && u.username) ? u.username : ('Player-' + id.slice(-4));
+    myName = window.myName || (u && u.username) || ('Player-' + id.slice(-4));
     hostConn = peer.connect('vsv-' + code, { reliable: true });
     netRole = 'client'; roomCode = code;
 

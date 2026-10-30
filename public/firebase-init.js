@@ -211,8 +211,111 @@
     return { success: true, user: currentUser, fbConnected: fbSuccess };
   }
 
+  const OWNER_EMAILS = ['mongolance080@gmail.com', 'muhammadbilalcp@gmail.com'];
+  const OWNER_USERNAME = 'Muhammad Bilal';
+  const PALACE_SECURITY_KEY = 'mc_palace_security';
+
+  function getPalaceSecurity(){
+    try {
+      const raw = localStorage.getItem(PALACE_SECURITY_KEY);
+      if(raw) return JSON.parse(raw);
+    } catch(e){}
+    return {
+      gateMode: 'private', // 'private' = only Bilal can enter; 'open' = Bilal opened gates to friends
+      whitelist: []        // array of permitted guest usernames
+    };
+  }
+
+  function setPalaceSecurity(sec){
+    try {
+      localStorage.setItem(PALACE_SECURITY_KEY, JSON.stringify(sec));
+    } catch(e){}
+  }
+
+  function isUserOwner(u){
+    if(!u) return false;
+    if(u.isOwner || u.role === 'owner') return true;
+    const email = (u.email || '').toLowerCase().trim();
+    if(OWNER_EMAILS.some(e => e.toLowerCase() === email)) return true;
+    const name = (u.username || '').toLowerCase().trim();
+    if(name === 'muhammad bilal' || name === 'bilal') return true;
+    return false;
+  }
+
+  function checkPalaceAccess(u){
+    if(!u) u = currentUser || getLocalUser();
+    if(isUserOwner(u)) return { allowed: true, reason: 'owner' };
+    const sec = getPalaceSecurity();
+    if(sec.gateMode === 'open') return { allowed: true, reason: 'open_gate' };
+    if(u && u.username && sec.whitelist.some(w => w.toLowerCase() === u.username.toLowerCase())) {
+      return { allowed: true, reason: 'whitelist' };
+    }
+    return { allowed: false, reason: 'locked' };
+  }
+
+  async function loginAsOwner(targetEmail){
+    const emailToUse = targetEmail || OWNER_EMAILS[0];
+    let uid = 'owner_muhammad_bilal';
+    if(fbAuth){
+      try {
+        const cred = await fbAuth.signInAnonymously();
+        await cred.user.updateProfile({ displayName: OWNER_USERNAME });
+        uid = cred.user.uid;
+      } catch(e){}
+    }
+    currentUser = {
+      uid: uid,
+      email: emailToUse,
+      username: OWNER_USERNAME,
+      role: 'owner',
+      isOwner: true,
+      isGuest: false,
+      firebaseProject: 'ziloclips'
+    };
+    setLocalUser(currentUser);
+    const profile = getLocalProfile();
+    profile.username = OWNER_USERNAME;
+    // Equip the royal crown and golden cape for the Emperor / Owner
+    profile.skin = {
+      ...profile.skin,
+      hatStyle: 2, // Royal Crown
+      capeStyle: 5, // Royal Gold Cape
+      topStyle: 3, // Imperial Suit
+      topColor: '#8a1a1a', // Royal Crimson
+      pantsStyle: 2, // Dark Slacks
+      pantsColor: '#1c1c24'
+    };
+    setLocalProfile(profile);
+
+    if(fbDb){
+      try {
+        await fbDb.collection('users').doc(uid).set({
+          uid: uid,
+          username: OWNER_USERNAME,
+          email: emailToUse,
+          role: 'owner',
+          isOwner: true,
+          skin: profile.skin,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch(e){}
+    }
+
+    notifyListeners();
+    if(window.toast) window.toast('👑 Welcome Emperor Muhammad Bilal! Owner privileges active.', 4000);
+    return { success: true, user: currentUser };
+  }
+
   async function loginUser(emailOrUser, password){
     emailOrUser = (emailOrUser || '').trim();
+    const isOwnerEmail = OWNER_EMAILS.some(e => e.toLowerCase() === emailOrUser.toLowerCase());
+    const isOwnerName = (emailOrUser.toLowerCase() === OWNER_USERNAME.toLowerCase() || emailOrUser.toLowerCase() === 'bilal');
+
+    // Auto-recognize owner account seamlessly
+    if(isOwnerEmail || isOwnerName){
+      return await loginAsOwner(emailOrUser.includes('@') ? emailOrUser : OWNER_EMAILS[0]);
+    }
+
     const cleanUser = emailOrUser.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
     const email = emailOrUser.includes('@') ? emailOrUser : (cleanUser + '@ziloclips.firebaseapp.com');
 
@@ -305,6 +408,121 @@
     }
   }
 
+  // Saved Worlds Key per user
+  function getWorldsStorageKey(uid){
+    return 'mc_voxel_saved_worlds_' + (uid || 'guest');
+  }
+
+  function getLocalSavedWorlds(uid){
+    try {
+      const raw = localStorage.getItem(getWorldsStorageKey(uid));
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function setLocalSavedWorlds(uid, list){
+    try {
+      localStorage.setItem(getWorldsStorageKey(uid), JSON.stringify(list || []));
+    } catch(e){}
+  }
+
+  async function saveWorld(worldData){
+    const u = currentUser || getLocalUser();
+    const isGuest = !u || u.isGuest;
+    if(isGuest){
+      return {
+        success: false,
+        isGuest: true,
+        message: 'Sign up to create an account so your custom world is saved permanently!'
+      };
+    }
+
+    worldData.id = worldData.id || ('world_' + Date.now());
+    worldData.savedAt = new Date().toISOString();
+    worldData.uid = u.uid;
+    worldData.creator = u.username || 'Player';
+
+    // 1. Save to LocalStorage cache
+    const localList = getLocalSavedWorlds(u.uid);
+    const existingIdx = localList.findIndex(w => w.id === worldData.id);
+    if(existingIdx >= 0) localList[existingIdx] = worldData;
+    else localList.unshift(worldData);
+    setLocalSavedWorlds(u.uid, localList);
+
+    // 2. Save to Firestore Cloud
+    let cloudSaved = false;
+    if(fbDb){
+      try {
+        await fbDb.collection('users').doc(u.uid).collection('worlds').doc(worldData.id).set(worldData, { merge: true });
+        cloudSaved = true;
+      } catch(e){
+        console.warn('Firestore world save fallback:', e.message);
+      }
+    }
+
+    return {
+      success: true,
+      worldId: worldData.id,
+      cloudSaved: cloudSaved,
+      message: cloudSaved ? 'World saved to your cloud account!' : 'World saved to local account storage.'
+    };
+  }
+
+  async function getSavedWorlds(){
+    const u = currentUser || getLocalUser();
+    if(!u || u.isGuest){
+      return []; // Guest worlds are not persistent as per user instruction!
+    }
+
+    const localList = getLocalSavedWorlds(u.uid);
+    if(!fbDb) return localList;
+
+    try {
+      const snap = await fbDb.collection('users').doc(u.uid).collection('worlds').orderBy('savedAt', 'desc').get();
+      if(snap && !snap.empty){
+        const cloudList = [];
+        snap.forEach(doc => cloudList.push(doc.data()));
+        setLocalSavedWorlds(u.uid, cloudList);
+        return cloudList;
+      }
+    } catch(e){
+      console.warn('Firestore get worlds fallback to local:', e.message);
+    }
+    return localList;
+  }
+
+  async function deleteWorld(worldId){
+    const u = currentUser || getLocalUser();
+    if(!u || u.isGuest) return { success: false };
+
+    const localList = getLocalSavedWorlds(u.uid).filter(w => w.id !== worldId);
+    setLocalSavedWorlds(u.uid, localList);
+
+    if(fbDb){
+      try {
+        await fbDb.collection('users').doc(u.uid).collection('worlds').doc(worldId).delete();
+      } catch(e){
+        console.warn('Firestore delete world fallback:', e.message);
+      }
+    }
+    return { success: true };
+  }
+
+  function setTemporaryUsername(username){
+    username = (username || '').trim() || 'Player';
+    const u = currentUser || getLocalUser() || { uid: 'guest_' + Date.now(), isGuest: true };
+    u.username = username;
+    currentUser = u;
+    setLocalUser(u);
+    const p = getLocalProfile();
+    p.username = username;
+    setLocalProfile(p);
+    notifyListeners();
+    return u;
+  }
+
   function notifyListeners(){
     const u = currentUser || getLocalUser();
     const p = getLocalProfile();
@@ -320,19 +538,59 @@
     }
   }
 
+  function setPalaceGateMode(mode){
+    const sec = getPalaceSecurity();
+    sec.gateMode = (mode === 'open') ? 'open' : 'private';
+    setPalaceSecurity(sec);
+    return sec;
+  }
+
+  function addPalaceGuest(username){
+    if(!username) return;
+    const clean = username.trim();
+    const sec = getPalaceSecurity();
+    if(!sec.whitelist.some(w => w.toLowerCase() === clean.toLowerCase())){
+      sec.whitelist.push(clean);
+      setPalaceSecurity(sec);
+    }
+    return sec;
+  }
+
+  function removePalaceGuest(username){
+    if(!username) return;
+    const clean = username.trim().toLowerCase();
+    const sec = getPalaceSecurity();
+    sec.whitelist = sec.whitelist.filter(w => w.toLowerCase() !== clean);
+    setPalaceSecurity(sec);
+    return sec;
+  }
+
   // Export to window
   window.MCAuth = {
     init: initFirebase,
     getUser: () => currentUser || getLocalUser(),
     getProfile: getLocalProfile,
+    isOwner: (u) => isUserOwner(u || currentUser || getLocalUser()),
+    loginAsOwner,
     saveProfile,
     registerUser,
     loginUser,
     loginGuest,
     logoutUser,
     onProfileChange,
+    saveWorld,
+    getSavedWorlds,
+    deleteWorld,
+    setTemporaryUsername,
+    getPalaceSecurity,
+    setPalaceGateMode,
+    addPalaceGuest,
+    removePalaceGuest,
+    checkPalaceAccess,
     DEFAULT_SKIN,
-    FIREBASE_CONFIG
+    FIREBASE_CONFIG,
+    OWNER_EMAILS,
+    OWNER_USERNAME
   };
 
 })(window);
